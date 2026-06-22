@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .navbar {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 2rem;
+            animation: fadeIn 0.4s ease-out;
+            text-align: center;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card h3 {
+            margin: 0 0 1rem 0;
+            color: #6b7280;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .action-card {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2 style="margin: 0;">School Management</h2>
+        <div style="font-weight: 500;">
+            Welcome, Administrator | 
+            <a href="{% url 'login' %}" style="color:white; margin-left: 10px; text-decoration: underline;">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 style="margin-bottom: 1.5rem;">School Overview</h2>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>Total Students</h3>
+                <p class="value">{{ total_students }}</p>
+            </div>
+            <div class="card">
+                <h3>Total Teachers</h3>
+                <p class="value">{{ total_teachers }}</p>
+            </div>
+            <div class="card">
+                <h3>Total Classrooms</h3>
+                <p class="value">{{ total_classrooms }}</p>
+            </div>
+            <div class="card">
+                <h3>Total Monthly Payroll</h3>
+                <p class="value">${{ total_payroll }}</p>
+            </div>
+        </div>
+
+        <div class="card action-card">
+            <h2 style="margin-top:0;">Quick Actions</h2>
+            <p style="color: #6b7280; margin-bottom: 1.5rem;">Use the main Django Administration panel to manage the school database directly.</p>
+            <a href="/admin/" class="btn" target="_blank">Open Django Admin Panel</a>
+        </div>
+    </div>
+</body>
+</html>

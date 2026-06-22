@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management - Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .login-card {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            width: 100%;
+            max-width: 450px;
+            animation: fadeIn 0.5s ease-out;
+            box-sizing: border-box;
+            margin: 2rem 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h2 {
+            text-align: center;
+            color: var(--text);
+            margin-top: 0;
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            flex: 1;
+            margin-bottom: 1.5rem;
+        }
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        
+        /* Role Selection - Circular */
+        .role-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            gap: 10px;
+        }
+        .role-option {
+            position: relative;
+            flex: 1;
+        }
+        .role-option input[type="radio"] {
+            display: none;
+        }
+        .role-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0.5rem;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        .role-label .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #9ca3af;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .role-label .circle::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            transform: scale(0);
+            transition: transform 0.2s ease;
+        }
+        .role-option input[type="radio"]:checked + .role-label {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+        }
+        .role-option input[type="radio"]:checked + .role-label .circle {
+            border-color: var(--primary);
+        }
+        .role-option input[type="radio"]:checked + .role-label .circle::after {
+            transform: scale(1);
+        }
+        .role-option label:hover {
+            border-color: #c7d2fe;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-family: inherit;
+        }
+        .btn-submit:hover {
+            background: var(--primary-hover);
+        }
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+        
+        .messages {
+            margin: 0 0 1.5rem 0;
+            padding: 0;
+            list-style-type: none;
+        }
+        .messages li {
+            padding: 0.75rem 1rem;
+            background: #fee2e2;
+            color: var(--error);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            border: 1px solid #fca5a5;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>Create an Admin Account</h2>
+        
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control" required placeholder="John">
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control" required placeholder="Doe">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" required placeholder="john@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password (Minimum 8 characters)</label>
+                <input type="password" id="password" name="password" class="form-control" required minlength="8" placeholder="Create a password">
+            </div>
+            
+            <button type="submit" class="btn-submit">Register as Admin</button>
+            
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem;">
+                Already have an account? <a href="{% url 'login' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In here</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Attendance - {{ classroom }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --sidebar-width: 260px;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #1e1e2d;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            background: #1b1b28;
+            text-align: center;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #a1a1aa;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: #2b2b40;
+            color: white;
+            border-left: 4px solid var(--primary);
+        }
+        .sidebar-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* Main Content Styles */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .navbar {
+            background: var(--surface);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between; /* Adjusted to space-between for the back button and title */
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        .student-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 0.5rem;
+        }
+        .student-item:hover {
+            background: #f9fafb;
+        }
+        .student-item.active {
+            background: #e0e7ff;
+            border-left: 4px solid var(--primary);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: inherit;
+        }
+        .btn:hover { opacity: 0.9; }
+        
+        .att-btn {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            border-radius: 0.3rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            transition: all 0.2s;
+        }
+        .att-btn.present.active {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+        .att-btn.absent.active {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Teacher Panel</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
+                <span class="sidebar-icon">🏠</span> Dashboard
+            </a>
+            <a href="{% url 'teacher_attendance' %}" class="sidebar-link active">
+                <span class="sidebar-icon">📅</span> Attendance
+            </a>
+            <a href="{% url 'teacher_add_student' %}" class="sidebar-link">
+                <span class="sidebar-icon">➕</span> Add Student
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('Exams feature coming soon!')">
+                <span class="sidebar-icon">📝</span> Exams
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('Announcement feature coming soon!')">
+                <span class="sidebar-icon">📢</span> Announcement
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('About Teacher feature coming soon!')">
+                <span class="sidebar-icon">👤</span> About Teacher
+            </a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid #2b2b40;">
+            <a href="{% url 'login' %}" style="color: #ef4444; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
+                <span class="sidebar-icon">🚪</span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-wrapper">
+        <div class="navbar">
+            <h2 style="margin: 0; color: var(--text);">Attendance: {{ classroom }} ({{ target_date }})</h2>
+            <div style="font-weight: 600; color: var(--text);">
+                <a href="{% url 'teacher_attendance' %}" style="color:var(--primary); font-weight: 500; text-decoration: none;">&larr; Back to Selection</a>
+            </div>
+        </div>
+    
+    <div class="container">
+        
+        {% if action_type == 'take' %}
+        <!-- Sequential Attendance View -->
+        <div class="card" style="text-align: center; max-width: 600px; margin: 0 auto; min-height: 400px; display: flex; flex-direction: column; justify-content: center;">
+            <div id="seq-content">
+                <h3 style="color: #6b7280; font-size: 1rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Student <span id="seq-current-idx">1</span> of {{ students|length }}</h3>
+                <h2 id="seq-student-name" style="font-size: 2.2rem; margin: 0.5rem 0; color: #111827;">Loading...</h2>
+                <p style="font-size: 1.3rem; color: var(--primary); font-weight: 600; margin-bottom: 1.5rem;">ID: <span id="seq-student-id"></span></p>
+                
+                <div style="font-size: 1.2rem; margin-bottom: 2.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; display: inline-block;">
+                    Status: <strong id="seq-student-status" style="color: #6b7280;">--</strong>
+                </div>
+
+                <div style="display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1.5rem;">
+                    <button type="button" class="btn" style="background: var(--success); font-size: 1.2rem; padding: 1rem 3rem; flex: 1; max-width: 200px;" onclick="markSequential('present')">Present</button>
+                    <button type="button" class="btn" style="background: #ef4444; font-size: 1.2rem; padding: 1rem 3rem; flex: 1; max-width: 200px;" onclick="markSequential('absent')">Absent</button>
+                </div>
+                
+                <div style="display: flex; gap: 1.5rem; justify-content: center; align-items: center;">
+                    <button type="button" class="btn" onclick="openExitModal()" style="background: #6b7280; font-size: 1.2rem; padding: 1rem 3rem; flex: 1; max-width: 200px;">Exit</button>
+                    <button type="button" class="btn" id="seq-save-btn" onclick="submitAll()" style="background: var(--primary); font-size: 1.2rem; padding: 1rem 3rem; flex: 1; max-width: 200px; display: none;">Save Attendance</button>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Bulk Table View for Show/Edit -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="max-height: 70vh; overflow-y: auto;">
+                <table class="table" style="margin-top: 0; width: 100%;">
+                    <thead style="position: sticky; top: 0; z-index: 1;">
+                        <tr>
+                            <th style="background: #f3f4f6; padding: 1.5rem;">Student ID</th>
+                            <th style="background: #f3f4f6; padding: 1.5rem;">Student Name</th>
+                            <th style="background: #f3f4f6; padding: 1.5rem; text-align: center;">Mark Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr class="student-item" id="row-{{ student.id }}">
+                            <td style="padding: 1rem 1.5rem;"><code>{{ student.student_id }}</code></td>
+                            <td style="padding: 1rem 1.5rem; font-weight: 500;">{{ student.user.first_name }} {{ student.user.last_name }}</td>
+                            <td style="padding: 1rem 1.5rem; text-align: center;">
+                                {% if action_type == 'show' %}
+                                    {% if student.existing_status == 'present' %}
+                                        <strong style="color: #10b981; font-size: 1.1rem;">✅ Present</strong>
+                                    {% elif student.existing_status == 'absent' %}
+                                        <strong style="color: #ef4444; font-size: 1.1rem;">❌ Absent</strong>
+                                    {% else %}
+                                        <span style="color: #6b7280;">Not Marked</span>
+                                    {% endif %}
+                                {% else %}
+                                    <button type="button" 
+                                        class="att-btn present {% if student.existing_status == 'present' %}active{% endif %}" 
+                                        onclick="markAttendance('{{ student.id }}', 'present')">
+                                        Present
+                                    </button>
+                                    <button type="button" 
+                                        class="att-btn absent {% if student.existing_status == 'absent' %}active{% endif %}" 
+                                        onclick="markAttendance('{{ student.id }}', 'absent')">
+                                        Absent
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #6b7280; padding: 3rem;">No students found in this classroom.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if action_type != 'show' %}
+        <div style="text-align: right; margin-top: 2rem;">
+            <button class="btn" onclick="submitAll()" style="background: var(--primary);">Save Attendance</button>
+        </div>
+        {% else %}
+        <div style="text-align: right; margin-top: 2rem;">
+            <button class="btn" onclick="exportCSV()" style="background: #10b981;">📥 Export Data to CSV</button>
+        </div>
+        {% endif %}
+        {% endif %}
+
+    </div>
+
+    <!-- Exit Safeguard Modal -->
+    <div id="exitModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
+        <div class="card" style="max-width: 400px; width: 100%; text-align: center; padding: 2rem;">
+            <h3 style="margin-top: 0; font-size: 1.5rem;">Exit Attendance</h3>
+            <p style="color: #4b5563; margin-bottom: 2rem;">Do you want to save your current data before exiting?</p>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <button class="btn" style="background: var(--primary);" onclick="submitAll()">Save & Exit</button>
+                <button class="btn" style="background: #ef4444;" onclick="window.location.href='{% url 'teacher_attendance' %}'">Discard & Exit</button>
+                <button class="btn" style="background: #e5e7eb; color: var(--text);" onclick="closeExitModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <form id="attendance-form" method="POST" action="" style="display: none;">
+        {% csrf_token %}
+        <div id="hidden-inputs-container"></div>
+    </form>
+
+    <script>
+        const students = [
+            {% for student in students %}
+            {
+                id: '{{ student.id }}',
+                name: '{{ student.user.first_name }} {{ student.user.last_name }}',
+                studentId: '{{ student.student_id }}',
+                status: '{{ student.existing_status }}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        const attendanceData = {}; 
+        let currentIndex = 0;
+        const actionType = '{{ action_type }}';
+        
+        // Initialize existing data
+        students.forEach(s => {
+            if (s.status === 'present' || s.status === 'absent') {
+                attendanceData[s.id] = s.status;
+            }
+        });
+
+        // Initialize Sequential View
+        if (actionType === 'take') {
+            renderSequential();
+        }
+
+        function renderSequential() {
+            if (currentIndex >= students.length) return;
+            
+            const student = students[currentIndex];
+            document.getElementById('seq-current-idx').innerText = currentIndex + 1;
+            document.getElementById('seq-student-name').innerText = student.name;
+            document.getElementById('seq-student-id').innerText = student.studentId;
+            
+            // Check if already marked in attendanceData
+            if (attendanceData[student.id]) {
+                const stat = attendanceData[student.id];
+                document.getElementById('seq-student-status').innerText = stat.charAt(0).toUpperCase() + stat.slice(1);
+                document.getElementById('seq-student-status').style.color = stat === 'present' ? 'var(--success)' : '#ef4444';
+            } else {
+                document.getElementById('seq-student-status').innerText = '--';
+                document.getElementById('seq-student-status').style.color = '#6b7280';
+            }
+            
+            // Show Save button if on the last student
+            if (currentIndex === students.length - 1) {
+                document.getElementById('seq-save-btn').style.display = 'inline-block';
+            } else {
+                document.getElementById('seq-save-btn').style.display = 'none';
+            }
+        }
+
+        function markSequential(status) {
+            if (currentIndex >= students.length) return;
+            
+            const student = students[currentIndex];
+            attendanceData[student.id] = status;
+            
+            // Move to next student if it's not the last one
+            if (currentIndex < students.length - 1) {
+                currentIndex++;
+            }
+            renderSequential();
+        }
+
+        // Functions for Bulk View
+        function markAttendance(studentId, status) {
+            // Record data
+            attendanceData[studentId] = status;
+            
+            // Update UI
+            const row = document.getElementById('row-' + studentId);
+            const presentBtn = row.querySelector('.att-btn.present');
+            const absentBtn = row.querySelector('.att-btn.absent');
+            
+            if (status === 'present') {
+                presentBtn.classList.add('active');
+                absentBtn.classList.remove('active');
+            } else {
+                absentBtn.classList.add('active');
+                presentBtn.classList.remove('active');
+            }
+        }
+
+        function submitAll() {
+            const container = document.getElementById('hidden-inputs-container');
+            container.innerHTML = '';
+            
+            // Only submit students who have been marked
+            let markedCount = 0;
+            for (const [id, status] of Object.entries(attendanceData)) {
+                if (status) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'attendance_' + id;
+                    input.value = status;
+                    container.appendChild(input);
+                    markedCount++;
+                }
+            }
+            
+            if (markedCount === 0) {
+                alert("No attendance has been marked yet!");
+                return;
+            }
+            
+            document.getElementById('attendance-form').submit();
+        }
+
+        function openExitModal() {
+            document.getElementById('exitModal').style.display = 'flex';
+        }
+
+        function closeExitModal() {
+            document.getElementById('exitModal').style.display = 'none';
+        }
+
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Student ID,Student Name,Status\n"; // Header
+
+            const rows = document.querySelectorAll('.student-item');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length === 3) {
+                    const id = cells[0].innerText.trim();
+                    const name = cells[1].innerText.trim();
+                    const statusText = cells[2].innerText.trim();
+                    let status = "Not Marked";
+                    if (statusText.includes("Present")) status = "Present";
+                    else if (statusText.includes("Absent")) status = "Absent";
+                    
+                    csvContent += `${id},"${name}",${status}\n`;
+                }
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "attendance_export_{{ target_date }}.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+    </main>
+</body>
+</html>

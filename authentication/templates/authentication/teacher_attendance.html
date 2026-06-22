@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --sidebar-width: 260px;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #1e1e2d;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            background: #1b1b28;
+            text-align: center;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #a1a1aa;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: #2b2b40;
+            color: white;
+            border-left: 4px solid var(--primary);
+        }
+        .sidebar-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* Main Content Styles */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .navbar {
+            background: var(--surface);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h2 { margin-top: 0; color: var(--text); font-weight: 700; }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .form-control {
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-family: inherit;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .alert {
+            padding: 1rem;
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #a7f3d0;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Teacher Panel</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
+                <span class="sidebar-icon">🏠</span> Dashboard
+            </a>
+            <a href="{% url 'teacher_attendance' %}" class="sidebar-link active">
+                <span class="sidebar-icon">📅</span> Attendance
+            </a>
+            <a href="{% url 'teacher_add_student' %}" class="sidebar-link">
+                <span class="sidebar-icon">➕</span> Add Student
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('Exams feature coming soon!')">
+                <span class="sidebar-icon">📝</span> Exams
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('Announcement feature coming soon!')">
+                <span class="sidebar-icon">📢</span> Announcement
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('About Teacher feature coming soon!')">
+                <span class="sidebar-icon">👤</span> About Teacher
+            </a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid #2b2b40;">
+            <a href="{% url 'login' %}" style="color: #ef4444; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
+                <span class="sidebar-icon">🚪</span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-wrapper">
+        <div class="navbar">
+            <div style="font-weight: 600; color: var(--text);">
+                Welcome, {{ teacher.user.first_name }} {{ teacher.user.last_name }}
+            </div>
+        </div>
+
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+
+
+            <div class="card" id="manage-students">
+                <h2>Manage Students & Attendance</h2>
+                <form method="GET" action="">
+                    <label for="classroom_id" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Select Classroom:</label>
+                    <select name="classroom_id" id="classroom_id" class="form-control" onchange="this.form.submit()" style="min-width: 200px;">
+                        <option value="">-- Choose a Class --</option>
+                        {% for cls in classrooms %}
+                            <option value="{{ cls.id }}" {% if selected_classroom and selected_classroom.id == cls.id %}selected{% endif %}>
+                                {{ cls }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {% if selected_classroom %}
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2rem 0;">
+                
+                <!-- Quick Action Buttons -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; align-items: center; flex-wrap: wrap;">
+                    <form action="{% url 'manage_attendance' classroom_id=selected_classroom.id %}" method="GET" style="display: flex; gap: 0.5rem; align-items: center; background: #f9fafb; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border); margin: 0;">
+                        <label for="att_date" style="font-weight: 500; font-size: 0.9rem;">Date:</label>
+                        <input type="date" id="att_date" name="date" class="form-control" value="{{ today_date|date:'Y-m-d' }}" required style="padding: 0.5rem;">
+                        
+                        <label for="action_type" style="font-weight: 500; font-size: 0.9rem; margin-left: 1rem;">Action:</label>
+                        <select name="action_type" id="action_type" class="form-control" style="padding: 0.5rem;">
+                            <option value="show" selected>Show Attendance</option>
+                            <option value="take">Take Attendance</option>
+                            <option value="edit">Edit Attendance</option>
+                        </select>
+                        
+                        <button type="submit" class="btn" style="background: #10b981; padding: 0.5rem 1rem; margin-left: 1rem;">Proceed &rarr;</button>
+                    </form>
+                </div>
+
+                <div class="card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border);">
+                    <h3 style="margin-top: 0;">Enrolled Students ({{ selected_classroom }})</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td><code>{{ student.student_id }}</code></td>
+                                <td>{{ student.user.first_name }} {{ student.user.last_name }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" style="text-align: center; color: #6b7280;">No students found in this classroom.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</body>
+</html>
