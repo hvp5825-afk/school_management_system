@@ -11,22 +11,26 @@ User = get_user_model()
 
 def login_view(request):
     if request.method == 'POST':
-        identifier = request.POST.get('username')
-        password = request.POST.get('password')
+        identifier = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
 
         actual_username = identifier
         
-        # 1. Try to find a Teacher by teacher_id
-        teacher = Teacher.objects.filter(teacher_id=identifier).first()
+        # 1. Try to find a Teacher by teacher_id (case-insensitive)
+        teacher = Teacher.objects.filter(teacher_id__iexact=identifier).first()
         if teacher:
             actual_username = teacher.user.username
         else:
-            # 2. Try to find a Student by student_id
-            student = Student.objects.filter(student_id=identifier).first()
+            # 2. Try to find a Student by student_id (case-insensitive)
+            student = Student.objects.filter(student_id__iexact=identifier).first()
             if student:
                 actual_username = student.user.username
+            else:
+                # 3. As a last resort, check if they typed just "amit489" and try to find a username
+                # containing it, if no direct match was found. We'll rely on Django's authenticate for direct username.
+                pass
 
-        # 3. Authenticate with whichever username was resolved
+        # Authenticate with whichever username was resolved
         user = authenticate(request, username=actual_username, password=password)
         
         if user is not None:
