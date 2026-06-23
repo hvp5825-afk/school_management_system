@@ -145,7 +145,7 @@ def student_dashboard(request):
     try:
         student_profile = request.user.student_profile
     except Exception:
-        return HttpResponse("Student profile not found for this user.")
+        return HttpResponse(f"Student profile not found for this user. Username: {request.user.username}, Role: {getattr(request.user, 'role', 'None')}")
 
     # Schedule
     schedule = []
