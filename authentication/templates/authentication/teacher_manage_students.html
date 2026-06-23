@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +16,7 @@
             --text: #1f2937;
             --border: #e5e7eb;
             --success: #10b981;
+            --danger: #ef4444;
             --sidebar-width: 260px;
         }
         body {
@@ -91,85 +93,73 @@
             z-index: 10;
         }
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 2rem auto;
             padding: 0 2rem;
             width: 100%;
             box-sizing: border-box;
         }
-        .card {
+        
+        .action-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .action-card {
             background: var(--surface);
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            padding: 2.5rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #374151;
-        }
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-family: inherit;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-        
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        .btn {
-            padding: 0.75rem 2rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            font-family: inherit;
-            display: inline-flex;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: var(--text);
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            margin-top: 1rem;
         }
-        .btn:hover { opacity: 0.9; }
 
-        .alert {
-            padding: 1rem;
-            border-radius: 0.5rem;
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .action-card.add-card:hover {
+            border-color: var(--primary);
+        }
+        .action-card.remove-card:hover {
+            border-color: var(--danger);
+        }
+
+        .action-icon {
+            font-size: 3.5rem;
             margin-bottom: 1.5rem;
-            font-weight: 500;
         }
-        .alert-error {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #f87171;
+
+        .add-card .action-icon {
+            color: var(--primary);
         }
-        .alert-success {
-            background-color: #d1fae5;
-            color: #065f46;
-            border: 1px solid #34d399;
+
+        .remove-card .action-icon {
+            color: var(--danger);
         }
+
+        .action-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-desc {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
     </style>
 </head>
 <body>
@@ -186,19 +176,19 @@
             <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
                 <span class="sidebar-icon">📅</span> Attendance
             </a>
-            <a href="{% url 'teacher_add_student' %}" class="sidebar-link active">
+            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link active">
                 <span class="sidebar-icon">👥</span> Manage Students
             </a>
             <a href="{% url 'teacher_exams' %}" class="sidebar-link">
                 <span class="sidebar-icon">📝</span> Exams & Marks
             </a>
-            <a href="{% url 'teacher_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_announcements' %}active{% endif %}">
+            <a href="{% url 'teacher_announcements' %}" class="sidebar-link">
                 <span class="sidebar-icon">📢</span> Announcement
             </a>
-            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_leave_requests' %}active{% endif %}">
+            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link">
                 <span class="sidebar-icon">📄</span> Leave Requests
             </a>
-            <a href="{% url 'about_teacher' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about_teacher' %}active{% endif %}">
+            <a href="{% url 'about_teacher' %}" class="sidebar-link">
                 <span class="sidebar-icon">👤</span> About Teacher
             </a>
         </nav>
@@ -219,49 +209,23 @@
         </div>
     
         <div class="container">
-            <div class="card">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h1 style="color: var(--text); font-size: 2.2rem; margin-bottom: 0.5rem;">What would you like to do?</h1>
+                <p style="color: #6b7280; font-size: 1.1rem;">Select an action below to manage student records in the system.</p>
+            </div>
+            
+            <div class="action-cards">
+                <a href="{% url 'teacher_add_student' %}" class="action-card add-card">
+                    <i class="fas fa-user-plus action-icon"></i>
+                    <div class="action-title">Add Student</div>
+                    <div class="action-desc">Register a new student, assign them to a classroom, and generate their login credentials.</div>
+                </a>
                 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <p style="color: #6b7280; margin-top: 0; margin-bottom: 2rem;">Fill in the details below to add a new student. A unique Student ID will be generated automatically upon submission.</p>
-
-                <form method="POST" action="{% url 'teacher_add_student' %}">
-                    {% csrf_token %}
-                    
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label for="first_name">First Name</label>
-                            <input type="text" id="first_name" name="first_name" class="form-control" required placeholder="e.g. John">
-                        </div>
-                        <div class="form-group">
-                            <label for="last_name">Last Name</label>
-                            <input type="text" id="last_name" name="last_name" class="form-control" required placeholder="e.g. Doe">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" class="form-control" required placeholder="e.g. john@example.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="classroom_id">Assign to Classroom</label>
-                        <select id="classroom_id" name="classroom_id" class="form-control" required>
-                            <option value="">-- Select Classroom --</option>
-                            {% for c in classrooms %}
-                            <option value="{{ c.id }}">{{ c.standard }} - {{ c.section }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn">Register Student</button>
-                </form>
+                <a href="{% url 'teacher_remove_student' %}" class="action-card remove-card">
+                    <i class="fas fa-user-minus action-icon"></i>
+                    <div class="action-title">Remove Student</div>
+                    <div class="action-desc">Search for an existing student and permanently remove them from the system.</div>
+                </a>
             </div>
         </div>
     </main>

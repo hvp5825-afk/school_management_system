@@ -1,0 +1,319 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Requests | Teacher Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #1e293b;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            background: #0f172a;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.3rem;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: #334155;
+            color: white;
+            border-left: 4px solid var(--primary);
+        }
+        .sidebar-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .navbar {
+            background: var(--surface);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .table th {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Teacher Panel</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
+                <span class="sidebar-icon">🏠</span> Dashboard
+            </a>
+            <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
+                <span class="sidebar-icon">📅</span> Attendance
+            </a>
+            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link">
+                <span class="sidebar-icon">👥</span> Manage Students
+            </a>
+            <a href="{% url 'teacher_exams' %}" class="sidebar-link">
+                <span class="sidebar-icon">📝</span> Exams & Marks
+            </a>
+            <a href="{% url 'teacher_announcements' %}" class="sidebar-link">
+                <span class="sidebar-icon">📢</span> Announcement
+            </a>
+            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link active">
+                <span class="sidebar-icon">📄</span> Leave Requests
+            </a>
+            <a href="{% url 'about_teacher' %}" class="sidebar-link">
+                <span class="sidebar-icon">👤</span> About Teacher
+            </a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid #334155;">
+            <a href="{% url 'login' %}" style="color: #ef4444; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-wrapper">
+        <div class="navbar">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-weight: 600; color: #475569;">{{ request.user.get_full_name|default:request.user.username }}</span>
+                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1 style="margin-top: 0;">Leave Requests Portal</h1>
+            
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+                <!-- Apply Leave Form -->
+                <div class="card">
+                    <h2 style="margin-top: 0; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">Apply for Leave</h2>
+                    <form id="leave-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="start-date" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Days</label>
+                            <input type="number" id="num-days" min="1" required class="form-input" placeholder="e.g. 2">
+                        </div>
+                        <div class="form-group">
+                            <label>Reason</label>
+                            <textarea id="reason" rows="4" required class="form-input" placeholder="Please specify the reason for your leave..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Request</button>
+                        <div id="form-msg" style="margin-top: 1rem; text-align: center; font-weight: 500;"></div>
+                    </form>
+                </div>
+
+                <!-- Leave History Table -->
+                <div class="card" style="max-height: 600px; overflow-y: auto;">
+                    <h2 style="margin-top: 0; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">My Leave History</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Applied On</th>
+                                <th>Dates</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in leave_requests %}
+                            <tr>
+                                <td style="white-space: nowrap;">{{ req.date_applied|date:"d M Y" }}</td>
+                                <td style="white-space: nowrap;">{{ req.start_date|date:"d M Y" }} - {{ req.end_date|date:"d M Y" }}</td>
+                                <td>{{ req.reason }}</td>
+                                <td>
+                                    {% if req.status == 'Pending' %}
+                                        <span style="background: var(--warning)20; color: var(--warning); padding: 0.3rem 0.8rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem;"><i class="fas fa-clock"></i> Pending</span>
+                                    {% elif req.status == 'Approved' %}
+                                        <span style="background: var(--success)20; color: var(--success); padding: 0.3rem 0.8rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem;"><i class="fas fa-check"></i> Approved</span>
+                                    {% else %}
+                                        <span style="background: var(--danger)20; color: var(--danger); padding: 0.3rem 0.8rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem;"><i class="fas fa-times"></i> Rejected</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #64748b;">No leave requests found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const msgDiv = document.getElementById('form-msg');
+
+        document.getElementById('leave-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            msgDiv.textContent = 'Submitting...';
+            msgDiv.style.color = '#475569';
+            
+            const startDateStr = document.getElementById('start-date').value;
+            const numDays = parseInt(document.getElementById('num-days').value, 10);
+            const reason = document.getElementById('reason').value;
+
+            // Calculate end date based on start date and number of days
+            const startDate = new Date(startDateStr);
+            startDate.setDate(startDate.getDate() + (numDays - 1));
+            const endDateStr = startDate.toISOString().split('T')[0];
+
+            fetch('/api/leave-requests/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    start_date: startDateStr,
+                    end_date: endDateStr,
+                    reason: reason
+                })
+            })
+            .then(res => {
+                if(res.ok) {
+                    msgDiv.textContent = 'Request submitted successfully!';
+                    msgDiv.style.color = 'var(--success)';
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    res.json().then(data => {
+                        console.error(data);
+                        msgDiv.textContent = 'Error: Please check the dates.';
+                        msgDiv.style.color = 'var(--danger)';
+                    });
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                msgDiv.textContent = 'A network error occurred.';
+                msgDiv.style.color = 'var(--danger)';
+            });
+        });
+    </script>
+</body>
+</html>

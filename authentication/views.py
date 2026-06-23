@@ -4,8 +4,9 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from school.models import Teacher, Timetable, Classroom, Student, Attendance, Mark
+from school.models import Teacher, Timetable, Classroom, Student, Attendance, Mark, Announcement, Subject, Exam
 from django.utils import timezone
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -13,6 +14,8 @@ def login_view(request):
     if request.method == 'POST':
         identifier = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
+        
+        print(f"DEBUG LOGIN: Trying to login with username='{identifier}' and password='{password}'")
 
         user = None
         
@@ -155,18 +158,77 @@ def student_dashboard(request):
     present_days = attendance_records.filter(status=True).count()
     attendance_percentage = (present_days / total_days * 100) if total_days > 0 else 0
 
-    # Marks
-    marks = Mark.objects.filter(student=student_profile)
+    # Get recent announcements
+    recent_announcements = Announcement.objects.all().order_by('-date_posted')[:3]
+
+    from school.models import StudentWarning
+    warnings = StudentWarning.objects.filter(student=student_profile).order_by('-date_issued')
 
     context = {
         'student': student_profile,
         'schedule': schedule,
-        'attendance_percentage': round(attendance_percentage, 2),
-        'present_days': present_days,
+        'attendance_percentage': attendance_percentage,
         'total_days': total_days,
+        'present_days': present_days,
+        'recent_announcements': recent_announcements,
+        'warnings': warnings,
+    }
+    
+    return render(request, 'authentication/student_dashboard.html', context)
+
+@login_required
+def student_attendance(request):
+    if getattr(request.user, 'role', None) != 'student':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+        
+    student = Student.objects.get(user=request.user)
+    attendances = Attendance.objects.filter(student=student).order_by('-date')
+    
+    total_days = attendances.count()
+    present_days = attendances.filter(status=True).count()
+    attendance_percentage = (present_days / total_days * 100) if total_days > 0 else 0
+
+    context = {
+        'student': student,
+        'attendances': attendances,
+        'total_days': total_days,
+        'present_days': present_days,
+        'attendance_percentage': round(attendance_percentage, 1),
+    }
+    return render(request, 'authentication/student_attendance.html', context)
+
+@login_required
+def student_exams(request):
+    if getattr(request.user, 'role', None) != 'student':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+        
+    student = Student.objects.get(user=request.user)
+    marks = Mark.objects.filter(student=student).select_related('exam', 'exam__subject')
+    
+    context = {
+        'student': student,
         'marks': marks,
     }
-    return render(request, 'authentication/student_dashboard.html', context)
+    return render(request, 'authentication/student_exams.html', context)
+
+@login_required
+def student_announcements(request):
+    if getattr(request.user, 'role', None) != 'student':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+        
+    student = Student.objects.get(user=request.user)
+    
+    # All announcements are common for all students
+    announcements = Announcement.objects.all().order_by('-date_posted')
+    
+    context = {
+        'student': student,
+        'announcements': announcements,
+    }
+    return render(request, 'authentication/student_announcements.html', context)
 
 @login_required
 def manage_attendance(request, classroom_id):
@@ -234,6 +296,13 @@ def manage_attendance(request, classroom_id):
 
 
 @login_required
+def teacher_manage_students(request):
+    if getattr(request.user, 'role', None) != 'teacher':
+        messages.error(request, "Access denied.")
+        return redirect('login')
+    return render(request, 'authentication/teacher_manage_students.html')
+
+@login_required
 def teacher_add_student(request):
     if getattr(request.user, 'role', None) != 'teacher':
         messages.error(request, "Access denied.")
@@ -242,6 +311,19 @@ def teacher_add_student(request):
     classrooms = Classroom.objects.all()
 
     if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'remove':
+            student_id = request.POST.get('student_id')
+            try:
+                student = Student.objects.get(id=student_id)
+                user_to_delete = student.user
+                student.delete()
+                user_to_delete.delete()
+                messages.success(request, "Student removed successfully!")
+            except Exception as e:
+                messages.error(request, f"Error removing student: {str(e)}")
+            return redirect('teacher_add_student')
+
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         email = request.POST.get('email', '').strip()
@@ -277,8 +359,53 @@ def teacher_add_student(request):
             messages.error(request, f"Error adding student: {str(e)}")
             return redirect('teacher_add_student')
 
-    return render(request, 'authentication/teacher_add_student.html', {'classrooms': classrooms})
+    students = Student.objects.select_related('user', 'classroom').order_by('-user__date_joined')
+    return render(request, 'authentication/teacher_add_student.html', {'classrooms': classrooms, 'students': students})
 
+
+@login_required
+def teacher_remove_student(request):
+    if getattr(request.user, 'role', None) != 'teacher':
+        messages.error(request, "Access denied.")
+        return redirect('login')
+
+    classrooms = Classroom.objects.all()
+    students = []
+    search_query = request.GET.get('search_query', '').strip()
+    classroom_id = request.GET.get('classroom_id', '')
+
+    if search_query or classroom_id:
+        from django.db.models import Q
+        students = Student.objects.select_related('user', 'classroom')
+        if search_query:
+            students = students.filter(
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query) |
+                Q(student_id__icontains=search_query)
+            )
+        if classroom_id:
+            students = students.filter(classroom_id=classroom_id)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'remove':
+            student_id = request.POST.get('student_id')
+            try:
+                student = Student.objects.get(id=student_id)
+                user_to_delete = student.user
+                student.delete()
+                user_to_delete.delete()
+                messages.success(request, "Student removed successfully!")
+            except Exception as e:
+                messages.error(request, f"Error removing student: {str(e)}")
+            return redirect('teacher_remove_student')
+
+    return render(request, 'authentication/teacher_remove_student.html', {
+        'classrooms': classrooms, 
+        'students': students, 
+        'search_query': search_query,
+        'selected_classroom': classroom_id
+    })
 
 @login_required
 def teacher_exams(request):
@@ -293,23 +420,30 @@ def teacher_exams(request):
 
     # Get unique classes and subjects the teacher teaches
     timetables = Timetable.objects.filter(teacher=teacher).select_related('classroom', 'subject')
-    assignments = []
-    seen = set()
+    unique_classrooms = set()
+    unique_subjects = set()
     for t in timetables:
-        key = (t.classroom.id, t.subject.id)
-        if key not in seen:
-            seen.add(key)
-            assignments.append({
-                'classroom': t.classroom,
-                'subject': t.subject
-            })
+        unique_classrooms.add(t.classroom)
+        unique_subjects.add(t.subject)
+    
+    unique_classrooms = list(unique_classrooms)
+    unique_subjects = list(unique_subjects)
 
     selected_classroom_id = request.GET.get('classroom_id')
     selected_subject_id = request.GET.get('subject_id')
+    exam_id = request.GET.get('exam_id')
+    exam_date_str = request.GET.get('exam_date')
+    exam_name = request.GET.get('exam_name')
+    max_score_val = request.GET.get('max_score', '100')
+    action_type = request.GET.get('action_type', 'show')
+    export_csv = request.GET.get('export_csv')
     
     students = []
     selected_classroom = None
     selected_subject = None
+    selected_exam = None
+    selected_date = None
+    available_exams = []
 
     if selected_classroom_id and selected_subject_id:
         try:
@@ -317,46 +451,275 @@ def teacher_exams(request):
             selected_subject = Subject.objects.get(id=selected_subject_id)
             students = list(selected_classroom.students.all())
             
-            # Fetch existing marks
-            marks = Mark.objects.filter(student__in=students, subject=selected_subject)
-            marks_dict = {m.student_id: m for m in marks}
+            # Get existing exams for this class & subject
+            from school.models import Exam, Mark
+            available_exams = Exam.objects.filter(classroom=selected_classroom, subject=selected_subject).order_by('-date')
             
-            for student in students:
-                student.existing_mark = marks_dict.get(student.id)
+            # Determine the current exam
+            if exam_name and exam_date_str:
+                from datetime import datetime
+                from django.utils import timezone
+                try:
+                    selected_date = datetime.strptime(exam_date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    selected_date = timezone.now().date()
+                
+                max_sc = int(max_score_val) if max_score_val.isdigit() else 100
+                selected_exam, _ = Exam.objects.get_or_create(
+                    name=exam_name,
+                    classroom=selected_classroom,
+                    subject=selected_subject,
+                    defaults={'date': selected_date, 'max_score': max_sc, 'teacher': teacher}
+                )
+            elif exam_id:
+                selected_exam = Exam.objects.filter(id=exam_id).first()
+                if selected_exam:
+                    selected_date = selected_exam.date
+
+            # Fetch existing marks if an exam is selected
+            if selected_exam:
+                marks = Mark.objects.filter(student__in=students, exam=selected_exam)
+                marks_dict = {m.student_id: m for m in marks}
+                
+                for student in students:
+                    student.existing_mark = marks_dict.get(student.id)
+                
+                # CSV Export logic
+                if export_csv == '1':
+                    import csv
+                    from django.http import HttpResponse
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = f'attachment; filename="marks_{selected_classroom}_{selected_exam.name}.csv"'
+                    
+                    writer = csv.writer(response)
+                    writer.writerow(['Student ID', 'Student Name', 'Score Obtained', 'Max Score', 'Percentage'])
+                    
+                    for student in students:
+                        m = student.existing_mark
+                        if m:
+                            pct = round((m.score / m.max_score) * 100, 2) if m.max_score > 0 else 0
+                            writer.writerow([student.student_id, f"{student.user.first_name} {student.user.last_name}", m.score, m.max_score, f"{pct}%"])
+                        else:
+                            writer.writerow([student.student_id, f"{student.user.first_name} {student.user.last_name}", 'N/A', selected_exam.max_score, 'N/A'])
+                    
+                    return response
                 
         except (Classroom.DoesNotExist, Subject.DoesNotExist):
             pass
 
-    if request.method == 'POST' and selected_classroom and selected_subject:
-        for student in students:
-            score_val = request.POST.get(f'score_{student.id}')
-            max_score_val = request.POST.get(f'max_score_{student.id}')
+    if request.method == 'POST' and request.POST.get('save_marks') == '1':
+        exam_id_post = request.GET.get('exam_id')
+        from school.models import Exam, Mark
+        try:
+            selected_exam = Exam.objects.get(id=exam_id_post)
+        except Exam.DoesNotExist:
+            selected_exam = None
             
-            if score_val is not None and max_score_val is not None and score_val != '':
-                try:
-                    score = float(score_val)
-                    max_score = int(max_score_val)
-                    
-                    # Update or Create
-                    mark, created = Mark.objects.get_or_create(
-                        student=student,
-                        subject=selected_subject,
-                        defaults={'score': score, 'max_score': max_score}
-                    )
-                    if not created:
-                        mark.score = score
-                        mark.max_score = max_score
-                        mark.save()
-                except ValueError:
-                    continue # Skip invalid numbers
+        if selected_exam and selected_classroom and selected_subject:
+            has_error = False
+            for student in students:
+                score_val = request.POST.get(f'score_{student.id}')
+                if score_val is not None and score_val != '':
+                    try:
+                        score = float(score_val)
+                        if score > selected_exam.max_score:
+                            has_error = True
+                            continue
+                            
+                        # Update or Create
+                        mark, created = Mark.objects.get_or_create(
+                            student=student,
+                            exam=selected_exam,
+                            defaults={'score': score, 'max_score': selected_exam.max_score}
+                        )
+                        if not created:
+                            mark.score = score
+                            mark.max_score = selected_exam.max_score
+                            mark.save()
+                    except ValueError:
+                        continue # Skip invalid numbers
 
-        messages.success(request, f"Marks saved successfully for {selected_classroom} - {selected_subject.name}!")
-        return redirect(f"{request.path}?classroom_id={selected_classroom.id}&subject_id={selected_subject.id}")
+            if not has_error:
+                messages.success(request, f"Marks saved successfully for {selected_classroom} - {selected_exam.name}!")
+            else:
+                messages.warning(request, f"Some marks were saved, but some failed due to exceeding max score.")
+            return redirect(f"{request.path}?classroom_id={selected_classroom.id}&subject_id={selected_subject.id}&exam_id={selected_exam.id}&action_type=show")
 
     context = {
-        'assignments': assignments,
+        'unique_classrooms': unique_classrooms,
+        'unique_subjects': unique_subjects,
         'selected_classroom': selected_classroom,
         'selected_subject': selected_subject,
+        'selected_exam': selected_exam,
+        'selected_date': selected_date,
+        'available_exams': available_exams,
         'students': students,
+        'action_type': action_type,
     }
     return render(request, 'authentication/teacher_exams.html', context)
+
+@login_required
+def teacher_announcements(request):
+    if getattr(request.user, 'role', None) != 'teacher':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        return redirect('login')
+
+    from school.models import Announcement
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        category = request.POST.get('category')
+        image = request.FILES.get('image')
+        if title and content:
+            Announcement.objects.create(
+                teacher=teacher,
+                title=title,
+                content=content,
+                category=category,
+                image=image
+            )
+            messages.success(request, 'Announcement posted successfully!')
+            return redirect('teacher_announcements')
+
+    announcements = Announcement.objects.filter(teacher=teacher).order_by('-date_posted')
+    return render(request, 'authentication/teacher_announcements.html', {'announcements': announcements})
+
+@login_required
+def about_teacher(request):
+    if getattr(request.user, 'role', None) != 'teacher':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+        
+    try:
+        teacher = Teacher.objects.select_related('user', 'specialty_subject').get(user=request.user)
+    except Teacher.DoesNotExist:
+        return redirect('login')
+        
+    return render(request, 'authentication/about_teacher.html', {'teacher': teacher})
+
+@login_required
+def teacher_leave_requests(request):
+    if getattr(request.user, 'role', None) != 'teacher':
+        messages.error(request, 'Access denied.')
+        return redirect('login')
+        
+    from school.models import LeaveRequest
+    leave_requests = LeaveRequest.objects.filter(user=request.user).order_by('-date_applied')
+    return render(request, 'authentication/teacher_leave_requests.html', {'leave_requests': leave_requests})
+
+# Admin Panel Views
+@login_required
+def admin_dashboard(request):
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admins only.')
+        return redirect('login')
+    return render(request, 'admin/admin_dashboard.html')
+
+@login_required
+def admin_teacher_detail(request, pk):
+    if not request.user.is_superuser:
+        return redirect('login')
+    return render(request, 'admin/admin_teacher_detail.html', {'teacher_id': pk})
+
+@login_required
+def admin_student_detail(request, pk):
+    if not request.user.is_superuser:
+        return redirect('login')
+    
+    from school.models import Student, Attendance, Mark, StudentWarning
+    from django.shortcuts import get_object_or_404
+    
+    from django.db.models import Sum
+    
+    student = get_object_or_404(Student, pk=pk)
+    attendances = Attendance.objects.filter(student=student).order_by('-date')
+    marks = Mark.objects.filter(student=student).select_related('exam', 'exam__subject').order_by('-exam__date')
+    warnings = StudentWarning.objects.filter(student=student).order_by('-date_issued')
+    
+    # --- Performance Calculation Logic ---
+    # 1. Attendance Percentage
+    total_days = attendances.count()
+    present_days = attendances.filter(status=True).count()
+    attendance_percentage = (present_days / total_days * 100) if total_days > 0 else 0
+
+    # 2. Marks Average
+    marks_aggr = marks.aggregate(total_score=Sum('score'), total_max=Sum('max_score'))
+    total_score = marks_aggr['total_score'] or 0
+    total_max = marks_aggr['total_max'] or 0
+    marks_percentage = (float(total_score) / float(total_max) * 100) if total_max > 0 else 0
+
+    # 3. Overall Performance
+    # We average both percentages. If data is missing for one, we rely on the other.
+    if total_days > 0 and total_max > 0:
+        overall_percentage = (attendance_percentage + marks_percentage) / 2
+    elif total_days > 0:
+        overall_percentage = attendance_percentage
+    elif total_max > 0:
+        overall_percentage = marks_percentage
+    else:
+        overall_percentage = 0
+        
+    performance_label = "Very Bad"
+    performance_color = "var(--danger)"
+    
+    if total_days == 0 and total_max == 0:
+        performance_label = "No Data"
+        performance_color = "#64748b"
+    elif overall_percentage > 90:
+        performance_label = "Excellent"
+        performance_color = "#8b5cf6" # Purple
+    elif overall_percentage > 80:
+        performance_label = "Good"
+        performance_color = "var(--success)"
+    elif overall_percentage >= 50:
+        performance_label = "Average"
+        performance_color = "var(--warning)"
+    elif overall_percentage >= 30:
+        performance_label = "Poor"
+        performance_color = "#f97316" # Orange
+    else:
+        performance_label = "Very Bad"
+        performance_color = "var(--danger)"
+    
+    context = {
+        'student_id': pk,
+        'attendances': attendances,
+        'marks': marks,
+        'warnings': warnings,
+        'performance_label': performance_label,
+        'performance_color': performance_color,
+    }
+    return render(request, 'admin/admin_student_detail.html', context)
+
+@login_required
+def admin_teachers(request):
+    if not request.user.is_superuser:
+        return redirect('login')
+    return render(request, 'admin/admin_teachers.html')
+
+@login_required
+def admin_students(request):
+    if not request.user.is_superuser:
+        return redirect('login')
+    return render(request, 'admin/admin_students.html')
+
+@login_required
+def admin_announcements(request):
+    if not request.user.is_superuser:
+        return redirect('login')
+    return render(request, 'admin/admin_announcements.html')
+
+@login_required
+def admin_leave_requests(request):
+    if not request.user.is_superuser:
+        return redirect('login')
+    
+    from school.models import LeaveRequest
+    leave_requests = LeaveRequest.objects.all().select_related('user').order_by('-date_applied')
+    return render(request, 'admin/admin_leave_requests.html', {'leave_requests': leave_requests})

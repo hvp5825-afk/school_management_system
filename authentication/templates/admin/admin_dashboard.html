@@ -1,0 +1,101 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .icon-blue { background: #eff6ff; color: #3b82f6; }
+    .icon-green { background: #f0fdf4; color: #10b981; }
+    .icon-purple { background: #faf5ff; color: #a855f7; }
+    .icon-orange { background: #fff7ed; color: #f97316; }
+    
+    .stat-info h3 { margin: 0; font-size: 1.5rem; color: #1e293b; }
+    .stat-info p { margin: 0; color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 20px; height: 20px;
+        border: 3px solid rgba(0,0,0,0.1);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="margin: 0; color: #0f172a;">Dashboard Overview</h1>
+    <p style="color: #64748b; margin-top: 0.5rem;">Welcome to the comprehensive admin panel.</p>
+</div>
+
+<div class="stats-grid" id="dashboard-stats">
+    <div class="stat-card">
+        <div class="stat-icon icon-blue"><i class="fas fa-user-graduate"></i></div>
+        <div class="stat-info">
+            <h3 id="total-students"><div class="loading-spinner"></div></h3>
+            <p>Total Students</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-purple"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div class="stat-info">
+            <h3 id="active-teachers"><div class="loading-spinner"></div></h3>
+            <p>Active Teachers</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-green"><i class="fas fa-bullhorn"></i></div>
+        <div class="stat-info">
+            <h3 id="total-announcements"><div class="loading-spinner"></div></h3>
+            <p>Announcements</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-orange"><i class="fas fa-calendar-times"></i></div>
+        <div class="stat-info">
+            <h3 id="pending-leaves"><div class="loading-spinner"></div></h3>
+            <p>Pending Leaves</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/dashboard/stats/')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-students').textContent = data.total_students;
+                document.getElementById('active-teachers').textContent = data.active_teachers;
+                document.getElementById('total-announcements').textContent = data.total_announcements;
+                document.getElementById('pending-leaves').textContent = data.pending_leave_requests;
+            })
+            .catch(err => console.error('Error fetching dashboard stats:', err));
+    });
+</script>
+{% endblock %}

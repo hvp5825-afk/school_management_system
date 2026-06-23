@@ -1,0 +1,120 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0; color: #0f172a;">Teacher Details</h1>
+        <p style="color: #64748b; margin-top: 0.5rem;"><a href="{% url 'admin_teachers' %}" style="color: var(--primary); text-decoration: none;">&larr; Back to Directory</a></p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h2 id="teacher-name" style="margin-top: 0; color: var(--primary); text-align: center;">Loading...</h2>
+    <p id="teacher-id" style="text-align: center; color: #64748b; margin-bottom: 2rem;"></p>
+
+    <form id="teacher-edit-form">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Qualification</label>
+                <input type="text" id="t-qual" class="form-input" style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Specialty Subject</label>
+                <input type="text" id="t-subject" class="form-input" readonly disabled style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #f1f5f9;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Base Salary ($)</label>
+                <input type="number" id="t-base" step="0.01" class="form-input" style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Allowances ($)</label>
+                <input type="number" id="t-allow" step="0.01" class="form-input" style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Deductions ($)</label>
+                <input type="number" id="t-deduct" step="0.01" class="form-input" style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Net Salary (Calculated)</label>
+                <input type="text" id="t-net" readonly disabled style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #eff6ff; color: var(--primary); font-weight: bold;">
+            </div>
+        </div>
+        
+        <div style="text-align: right;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;">Save Changes</button>
+        </div>
+        <div id="status-msg" style="margin-top: 1rem; text-align: right; font-weight: 500;"></div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const teacherId = {{ teacher_id }};
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function calcNet() {
+        const base = parseFloat(document.getElementById('t-base').value) || 0;
+        const allow = parseFloat(document.getElementById('t-allow').value) || 0;
+        const deduct = parseFloat(document.getElementById('t-deduct').value) || 0;
+        document.getElementById('t-net').value = '$' + (base + allow - deduct).toFixed(2);
+    }
+
+    document.getElementById('t-base').addEventListener('input', calcNet);
+    document.getElementById('t-allow').addEventListener('input', calcNet);
+    document.getElementById('t-deduct').addEventListener('input', calcNet);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch(`/api/teachers/${teacherId}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('teacher-name').textContent = data.user.first_name + ' ' + data.user.last_name;
+                document.getElementById('teacher-id').textContent = 'ID: ' + data.teacher_id;
+                document.getElementById('t-qual').value = data.qualification || '';
+                document.getElementById('t-subject').value = data.specialty_subject ? data.specialty_subject.name : 'N/A';
+                document.getElementById('t-base').value = data.base_salary;
+                document.getElementById('t-allow').value = data.allowances;
+                document.getElementById('t-deduct').value = data.deductions;
+                calcNet();
+            })
+            .catch(err => console.error(err));
+    });
+
+    document.getElementById('teacher-edit-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const payload = {
+            qualification: document.getElementById('t-qual').value,
+            base_salary: document.getElementById('t-base').value,
+            allowances: document.getElementById('t-allow').value,
+            deductions: document.getElementById('t-deduct').value
+        };
+
+        fetch(`/api/teachers/${teacherId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if(res.ok) {
+                const msg = document.getElementById('status-msg');
+                msg.textContent = 'Changes saved successfully!';
+                msg.style.color = 'var(--success)';
+                setTimeout(() => msg.textContent='', 3000);
+            } else {
+                throw new Error('Failed to update');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            const msg = document.getElementById('status-msg');
+            msg.textContent = 'Error saving changes.';
+            msg.style.color = 'var(--danger)';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | School Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #1e40af;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #0f172a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            background: #020617;
+            text-align: center;
+            border-bottom: 1px solid #1e293b;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.3rem;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: #1e293b;
+            color: white;
+            border-left: 4px solid var(--primary);
+        }
+        .sidebar-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .navbar {
+            background: var(--surface);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: 0.2s;
+        }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: var(--primary-hover); }
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>School Admin</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                <span class="sidebar-icon"><i class="fas fa-chart-pie"></i></span> Dashboard
+            </a>
+            <a href="{% url 'admin_teachers' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_teachers' %}active{% endif %}">
+                <span class="sidebar-icon"><i class="fas fa-chalkboard-teacher"></i></span> Teachers
+            </a>
+            <a href="{% url 'admin_students' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_students' %}active{% endif %}">
+                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span> Students
+            </a>
+            <a href="{% url 'admin_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_announcements' %}active{% endif %}">
+                <span class="sidebar-icon"><i class="fas fa-bullhorn"></i></span> Announcements
+            </a>
+            <a href="{% url 'admin_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_leave_requests' %}active{% endif %}">
+                <span class="sidebar-icon"><i class="fas fa-calendar-check"></i></span> Leave Requests
+            </a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid #1e293b;">
+            <a href="{% url 'login' %}" style="color: #ef4444; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-wrapper">
+        <div class="navbar">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-weight: 600; color: #475569;">Admin: {{ request.user.username }}</span>
+                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

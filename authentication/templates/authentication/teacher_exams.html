@@ -282,16 +282,19 @@
             <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
                 <span class="sidebar-icon">📅</span> Attendance
             </a>
-            <a href="{% url 'teacher_add_student' %}" class="sidebar-link">
-                <span class="sidebar-icon">➕</span> Add Student
+            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link">
+                <span class="sidebar-icon">👥</span> Manage Students
             </a>
             <a href="{% url 'teacher_exams' %}" class="sidebar-link active">
                 <span class="sidebar-icon">📝</span> Exams & Marks
             </a>
-            <a href="#" class="sidebar-link" onclick="alert('Announcement feature coming soon!')">
+            <a href="{% url 'teacher_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_announcements' %}active{% endif %}">
                 <span class="sidebar-icon">📢</span> Announcement
             </a>
-            <a href="#" class="sidebar-link" onclick="alert('About Teacher feature coming soon!')">
+            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_leave_requests' %}active{% endif %}">
+                <span class="sidebar-icon">📄</span> Leave Requests
+            </a>
+            <a href="{% url 'about_teacher' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about_teacher' %}active{% endif %}">
                 <span class="sidebar-icon">👤</span> About Teacher
             </a>
         </nav>
@@ -325,35 +328,111 @@
             <h3 class="card-header">Select Class and Subject</h3>
             <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: flex-end;">
                 <div style="flex: 1;">
-                    <label class="form-label">Class - Subject</label>
-                    <select name="classroom_id" class="form-select" required onchange="this.form.subject_id.value = this.options[this.selectedIndex].getAttribute('data-subject');">
+                    <label class="form-label">Class</label>
+                    <select name="classroom_id" class="form-select" required>
                         <option value="">-- Select Class --</option>
-                        {% for assign in assignments %}
-                            <option value="{{ assign.classroom.id }}" data-subject="{{ assign.subject.id }}"
-                                {% if selected_classroom.id == assign.classroom.id and selected_subject.id == assign.subject.id %}selected{% endif %}>
-                                {{ assign.classroom }} - {{ assign.subject.name }}
+                        {% for c in unique_classrooms %}
+                            <option value="{{ c.id }}" {% if selected_classroom.id == c.id %}selected{% endif %}>
+                                {{ c }}
                             </option>
                         {% endfor %}
                     </select>
-                    <!-- Hidden input to pass subject_id since the dropdown represents the pair -->
-                    <input type="hidden" name="subject_id" value="{{ selected_subject.id|default:'' }}">
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label">Subject</label>
+                    <select name="subject_id" class="form-select" required>
+                        <option value="">-- Select Subject --</option>
+                        {% for s in unique_subjects %}
+                            <option value="{{ s.id }}" {% if selected_subject.id == s.id %}selected{% endif %}>
+                                {{ s.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div>
-                    <button type="submit" class="btn btn-primary">Load Students</button>
+                    <button type="submit" class="btn btn-primary">Select</button>
                 </div>
             </form>
+            
+            {% if selected_classroom and selected_subject %}
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
+            
+            <h3 class="card-header" style="border:none; margin-bottom: 1rem;">Manage Exam Marks</h3>
+            
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: center; background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border); width: 100%;">
+                    <input type="hidden" name="classroom_id" value="{{ selected_classroom.id }}">
+                    <input type="hidden" name="subject_id" value="{{ selected_subject.id }}">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <label style="font-weight: 500; font-size: 0.9rem;">Existing Exams</label>
+                        <select class="form-input" style="padding: 0.5rem;" onchange="if(this.value){ document.getElementById('exam_date_input').value = this.options[this.selectedIndex].getAttribute('data-date'); document.getElementById('exam_name_input').value = this.options[this.selectedIndex].getAttribute('data-name'); document.getElementById('max_score_input').value = this.options[this.selectedIndex].getAttribute('data-max'); } else { document.getElementById('exam_name_input').value=''; }">
+                            <option value="">-- Create New / Pick --</option>
+                            {% for exam in available_exams %}
+                                <option value="{{ exam.id }}" data-date="{{ exam.date|date:'Y-m-d' }}" data-name="{{ exam.name }}" data-max="{{ exam.max_score }}" {% if selected_exam and selected_exam.id == exam.id %}selected{% endif %}>
+                                    {{ exam.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <label style="font-weight: 500; font-size: 0.9rem;">Exam Date</label>
+                        <input type="date" id="exam_date_input" name="exam_date" class="form-input" value="{{ selected_date|date:'Y-m-d' }}" required style="padding: 0.5rem;">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <label style="font-weight: 500; font-size: 0.9rem;">Exam Name</label>
+                        <select id="exam_name_input" name="exam_name" class="form-input" style="padding: 0.5rem;" required>
+                            <option value="">-- Select Exam --</option>
+                            <option value="Unit Test" {% if selected_exam.name == 'Unit Test' %}selected{% endif %}>Unit Test</option>
+                            <option value="Mid Term" {% if selected_exam.name == 'Mid Term' %}selected{% endif %}>Mid Term</option>
+                            <option value="Final Exam" {% if selected_exam.name == 'Final Exam' %}selected{% endif %}>Final Exam</option>
+                            {% if selected_exam and selected_exam.name != 'Unit Test' and selected_exam.name != 'Mid Term' and selected_exam.name != 'Final Exam' %}
+                                <option value="{{ selected_exam.name }}" selected>{{ selected_exam.name }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <label style="font-weight: 500; font-size: 0.9rem;">Max Score</label>
+                        <input type="number" id="max_score_input" name="max_score" class="form-input" value="{{ selected_exam.max_score|default:100 }}" style="padding: 0.5rem; width: 80px;" required>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <label style="font-weight: 500; font-size: 0.9rem;">Action</label>
+                        <select name="action_type" class="form-input" style="padding: 0.5rem;" required>
+                            <option value="show" {% if action_type == 'show' %}selected{% endif %}>Show Marks</option>
+                            <option value="edit" {% if action_type == 'edit' %}selected{% endif %}>Add / Edit Marks</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: auto;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #10b981; padding: 0.6rem 1rem;">Proceed &rarr;</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Marks Entry Card -->
-        {% if selected_classroom and selected_subject %}
+        {% if selected_exam %}
         <div class="card">
             <h3 class="card-header">
-                Record Marks for {{ selected_classroom }} ({{ selected_subject.name }})
+                Record Marks for {{ selected_classroom }} - {{ selected_exam.name }}
+                <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-light); float: right;">Date: {{ selected_exam.date|date:"d M Y" }} | Max: {{ selected_exam.max_score }}</span>
             </h3>
             
+            {% if action_type == 'show' and students %}
+            <div style="text-align: right; margin-bottom: 1rem;">
+                <a href="{{ request.get_full_path }}&export_csv=1" class="btn btn-primary" style="background-color: #3b82f6; text-decoration: none;">📥 Export as CSV</a>
+            </div>
+            {% endif %}
+            
             {% if students %}
-            <form method="POST" action="{% url 'teacher_exams' %}?classroom_id={{ selected_classroom.id }}&subject_id={{ selected_subject.id }}">
+            <form method="POST" action="{% url 'teacher_exams' %}?classroom_id={{ selected_classroom.id }}&subject_id={{ selected_subject.id }}&exam_id={{ selected_exam.id }}">
                 {% csrf_token %}
+                <input type="hidden" name="save_marks" value="1">
                 <table>
                     <thead>
                         <tr>
@@ -369,20 +448,39 @@
                             <td><strong>{{ student.student_id }}</strong></td>
                             <td>{{ student.user.first_name }} {{ student.user.last_name }}</td>
                             <td>
-                                <input type="number" step="0.01" name="score_{{ student.id }}" class="score-input" 
-                                       value="{{ student.existing_mark.score|default:'' }}" placeholder="e.g. 85">
+                                {% if action_type == 'edit' %}
+                                    <input type="number" step="0.01" min="0" max="{{ student.existing_mark.max_score|default:selected_exam.max_score }}" 
+                                           name="score_{{ student.id }}" class="score-input score-obtained-input" 
+                                           value="{{ student.existing_mark.score|default:'' }}" placeholder="e.g. 85">
+                                {% else %}
+                                    {% if student.existing_mark %}
+                                        <strong>{{ student.existing_mark.score }}</strong>
+                                    {% else %}
+                                        <span style="color: #9ca3af;">Not recorded</span>
+                                    {% endif %}
+                                {% endif %}
                             </td>
                             <td>
-                                <input type="number" name="max_score_{{ student.id }}" class="score-input" 
-                                       value="{{ student.existing_mark.max_score|default:'100' }}">
+                                {% if action_type == 'edit' %}
+                                    <input type="number" name="max_score_{{ student.id }}" class="score-input" 
+                                           value="{{ student.existing_mark.max_score|default:selected_exam.max_score }}">
+                                {% else %}
+                                    {% if student.existing_mark %}
+                                        {{ student.existing_mark.max_score }}
+                                    {% else %}
+                                        {{ selected_exam.max_score }}
+                                    {% endif %}
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                {% if action_type == 'edit' %}
                 <div style="margin-top: 2rem; text-align: right;">
                     <button type="submit" class="btn btn-primary">Save Marks</button>
                 </div>
+                {% endif %}
             </form>
             {% else %}
             <div class="empty-state">
@@ -396,11 +494,24 @@
     </main>
 
     <script>
-        // Update hidden subject_id when selecting a classroom
-        document.querySelector('select[name="classroom_id"]').addEventListener('change', function() {
-            var selectedOption = this.options[this.selectedIndex];
-            var subjectId = selectedOption.getAttribute('data-subject');
-            document.querySelector('input[name="subject_id"]').value = subjectId;
+        // Navigate through score inputs using the Enter key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                // If the active element is a score input field
+                if (document.activeElement && document.activeElement.classList.contains('score-obtained-input')) {
+                    e.preventDefault(); // Prevent form submission
+                    
+                    // Get all score inputs as an array
+                    var inputs = Array.from(document.querySelectorAll('.score-obtained-input'));
+                    var index = inputs.indexOf(document.activeElement);
+                    
+                    // Focus the next input if it exists
+                    if (index > -1 && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                        inputs[index + 1].select();
+                    }
+                }
+            }
         });
     </script>
 </body>

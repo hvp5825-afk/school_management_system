@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard</title>
+    <title>About Teachers | Teacher Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -163,7 +163,7 @@
             <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
                 <span class="sidebar-icon">🏠</span> Dashboard
             </a>
-            <a href="{% url 'teacher_attendance' %}" class="sidebar-link active">
+            <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
                 <span class="sidebar-icon">📅</span> Attendance
             </a>
             <a href="{% url 'teacher_manage_students' %}" class="sidebar-link">
@@ -191,81 +191,135 @@
 
     <!-- Main Content -->
     <main class="main-wrapper">
-        <div class="navbar">
-            <div style="font-weight: 600; color: var(--text);">
-                Welcome, {{ teacher.user.first_name }} {{ teacher.user.last_name }}
+        <div class="navbar" style="justify-content: center;">
+            <div style="font-weight: 800; color: var(--primary); font-size: 2.2rem; text-align: center; width: 100%; text-transform: capitalize;">
+                Welcome {{ teacher.user.first_name }} {{ teacher.user.last_name }} Panel
             </div>
         </div>
 
-        <div class="container">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
+        
+<div class="container">
+    
+<style>
+    .profile-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 3rem;
+    }
+
+    .teacher-card {
+        background: #ffffff;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        padding: 3rem 2rem;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #f3f4f6;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .teacher-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.12);
+    }
+
+    .teacher-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 120px;
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        z-index: 0;
+    }
+
+    .teacher-avatar {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: #fff;
+        border: 5px solid #fff;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        margin: 0 auto 1.5rem auto;
+        position: relative;
+        z-index: 1;
+        margin-top: 20px;
+    }
+
+    .teacher-name {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .teacher-id {
+        color: #6b7280;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .teacher-qualification {
+        display: inline-block;
+        background: #e0e7ff;
+        color: #4338ca;
+        padding: 0.6rem 1.5rem;
+        border-radius: 2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+
+    .teacher-subject {
+        color: #4b5563;
+        font-size: 1.1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 1rem;
+        border: 1px dashed #cbd5e1;
+    }
+</style>
+
+<div style="text-align: center; margin-bottom: 2rem;">
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: #1f2937;">My Profile</h1>
+    <p style="color: #6b7280; font-size: 1.1rem;">Your professional information and academic details.</p>
+</div>
+
+<div class="profile-container">
+    <div class="teacher-card">
+        <div class="teacher-avatar">👨‍🏫</div>
+        <h3 class="teacher-name">{{ teacher.user.first_name }} {{ teacher.user.last_name }}</h3>
+        <div class="teacher-id">ID: {{ teacher.teacher_id }}</div>
+        
+        {% if teacher.qualification %}
+            <div class="teacher-qualification">🎓 {{ teacher.qualification }}</div>
+        {% else %}
+            <div class="teacher-qualification" style="background: #f3f4f6; color: #6b7280;">🎓 Qualification Pending</div>
+        {% endif %}
+        
+        <div class="teacher-subject">
+            {% if teacher.specialty_subject %}
+                📚 Specializes in <strong style="color: #4f46e5;">{{ teacher.specialty_subject.name }}</strong>
+            {% else %}
+                📚 General Faculty
             {% endif %}
-
-
-
-            <div class="card" id="manage-students">
-                <h2>Manage Students & Attendance</h2>
-                <form method="GET" action="">
-                    <label for="classroom_id" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Select Classroom:</label>
-                    <select name="classroom_id" id="classroom_id" class="form-control" onchange="this.form.submit()" style="min-width: 200px;">
-                        <option value="">-- Choose a Class --</option>
-                        {% for cls in classrooms %}
-                            <option value="{{ cls.id }}" {% if selected_classroom and selected_classroom.id == cls.id %}selected{% endif %}>
-                                {{ cls }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </form>
-
-                {% if selected_classroom %}
-                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2rem 0;">
-                
-                <!-- Quick Action Buttons -->
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; align-items: center; flex-wrap: wrap;">
-                    <form action="{% url 'manage_attendance' classroom_id=selected_classroom.id %}" method="GET" style="display: flex; gap: 0.5rem; align-items: center; background: #f9fafb; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border); margin: 0;">
-                        <label for="att_date" style="font-weight: 500; font-size: 0.9rem;">Date:</label>
-                        <input type="date" id="att_date" name="date" class="form-control" value="{{ today_date|date:'Y-m-d' }}" required style="padding: 0.5rem;">
-                        
-                        <label for="action_type" style="font-weight: 500; font-size: 0.9rem; margin-left: 1rem;">Action:</label>
-                        <select name="action_type" id="action_type" class="form-control" style="padding: 0.5rem;">
-                            <option value="show" selected>Show Attendance</option>
-                            <option value="take">Take Attendance</option>
-                            <option value="edit">Edit Attendance</option>
-                        </select>
-                        
-                        <button type="submit" class="btn" style="background: #10b981; padding: 0.5rem 1rem; margin-left: 1rem;">Proceed &rarr;</button>
-                    </form>
-                </div>
-
-                <div class="card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border);">
-                    <h3 style="margin-top: 0;">Enrolled Students ({{ selected_classroom }})</h3>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Student ID</th>
-                                <th>Student Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for student in students %}
-                            <tr>
-                                <td><code>{{ student.student_id }}</code></td>
-                                <td>{{ student.user.first_name }} {{ student.user.last_name }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="2" style="text-align: center; color: #6b7280;">No students found in this classroom.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-            </div>
         </div>
-    </main>
+    </div>
+</div>
+
+</div>
+</main>
 </body>
 </html>

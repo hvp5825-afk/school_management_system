@@ -1,0 +1,41 @@
+{% extends 'authentication/student_base.html' %}
+
+{% block student_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="margin: 0;">Exams & Marks</h2>
+</div>
+
+<div class="card">
+    <h3 style="margin-top: 0;">Academic Performance</h3>
+    {% if marks %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Subject & Exam</th>
+                <th>Exam Date</th>
+                <th>Score</th>
+                <th>Maximum Score</th>
+                <th>Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mark in marks %}
+            <tr>
+                <td><strong>{{ mark.exam.subject.name }} - {{ mark.exam.name }}</strong></td>
+                <td>{{ mark.exam.date|date:"F d, Y" }}</td>
+                <td style="font-weight: 700; color: #4f46e5;">{{ mark.score }}</td>
+                <td>{{ mark.max_score }}</td>
+                <td>
+                    <span style="background: #e0e7ff; color: #4338ca; padding: 0.3rem 0.8rem; border-radius: 2rem; font-weight: 600; font-size: 0.85rem;">
+                        {% widthratio mark.score mark.max_score 100 %}%
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #6b7280;">No marks have been uploaded for you yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

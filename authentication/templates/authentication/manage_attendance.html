@@ -166,16 +166,19 @@
             <a href="{% url 'teacher_attendance' %}" class="sidebar-link active">
                 <span class="sidebar-icon">📅</span> Attendance
             </a>
-            <a href="{% url 'teacher_add_student' %}" class="sidebar-link">
-                <span class="sidebar-icon">➕</span> Add Student
+            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link">
+                <span class="sidebar-icon">👥</span> Manage Students
             </a>
             <a href="#" class="sidebar-link" onclick="alert('Exams feature coming soon!')">
                 <span class="sidebar-icon">📝</span> Exams
             </a>
-            <a href="#" class="sidebar-link" onclick="alert('Announcement feature coming soon!')">
+            <a href="{% url 'teacher_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_announcements' %}active{% endif %}">
                 <span class="sidebar-icon">📢</span> Announcement
             </a>
-            <a href="#" class="sidebar-link" onclick="alert('About Teacher feature coming soon!')">
+            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_leave_requests' %}active{% endif %}">
+                <span class="sidebar-icon">📄</span> Leave Requests
+            </a>
+            <a href="{% url 'about_teacher' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about_teacher' %}active{% endif %}">
                 <span class="sidebar-icon">👤</span> About Teacher
             </a>
         </nav>

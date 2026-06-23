@@ -1,0 +1,73 @@
+{% extends 'authentication/student_base.html' %}
+
+{% block extra_css %}
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .stat-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 auto 1rem auto;
+        color: white;
+    }
+    .bg-success { background: var(--success, #10b981); }
+    .bg-warning { background: var(--warning, #f59e0b); }
+</style>
+{% endblock %}
+
+{% block student_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="margin: 0;">Attendance Record</h2>
+</div>
+
+<div class="grid">
+
+<div class="card" style="text-align: center; margin-bottom: 2rem;">
+    <h3 style="margin-top: 0;">Overall Attendance</h3>
+    <div class="stat-circle {% if attendance_percentage >= 75 %}bg-success{% else %}bg-warning{% endif %}">
+        {{ attendance_percentage|default:"0" }}%
+    </div>
+    <p style="color: #6b7280; margin-bottom: 0;">{{ present_days|default:"0" }} days present out of {{ total_days|default:"0" }} total days</p>
+</div>
+
+<div class="card">
+    <h3 style="margin-top: 0;">Detailed History</h3>
+    {% if attendances %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in attendances %}
+            <tr>
+                <td><strong>{{ record.date|date:"F d, Y" }}</strong></td>
+                <td>
+                    {% if record.status %}
+                        <span style="background: #d1fae5; color: #065f46; padding: 0.3rem 0.8rem; border-radius: 2rem; font-weight: 600; font-size: 0.85rem;">Present</span>
+                    {% else %}
+                        <span style="background: #fee2e2; color: #991b1b; padding: 0.3rem 0.8rem; border-radius: 2rem; font-weight: 600; font-size: 0.85rem;">Absent</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #6b7280;">No attendance records found.</p>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

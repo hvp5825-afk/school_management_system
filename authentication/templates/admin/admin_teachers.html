@@ -1,0 +1,79 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block extra_css %}
+<style>
+    .teacher-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    .teacher-name-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+        color: #1e293b;
+        text-decoration: none;
+        display: block;
+    }
+    .teacher-name-card:hover {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0; color: #0f172a;">Teacher Management</h1>
+        <p style="color: #64748b; margin-top: 0.5rem;">Click on a teacher's name to view their full details.</p>
+    </div>
+    <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Teacher</button>
+</div>
+
+<div class="card">
+    <h2 style="margin-top: 0;">Teacher Directory</h2>
+    <div id="teacher-grid" class="teacher-grid">
+        <p style="color: #94a3b8; text-align: center; width: 100%;">Loading teachers...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/teachers/')
+            .then(response => response.json())
+            .then(data => {
+                const grid = document.getElementById('teacher-grid');
+                grid.innerHTML = '';
+                
+                if(data.length === 0) {
+                    grid.innerHTML = '<p style="text-align: center; width: 100%;">No teachers found.</p>';
+                    return;
+                }
+                
+                data.forEach((teacher) => {
+                    const name = teacher.user.first_name + ' ' + teacher.user.last_name;
+                    grid.innerHTML += `
+                        <a href="/auth/dashboard/admin/teacher/${teacher.id}/" class="teacher-name-card">
+                            <i class="fas fa-user-circle" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i><br>
+                            ${name}
+                        </a>
+                    `;
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('teacher-grid').innerHTML = '<p style="color: red; text-align: center; width: 100%;">Error loading data</p>';
+            });
+    });
+</script>
+{% endblock %}

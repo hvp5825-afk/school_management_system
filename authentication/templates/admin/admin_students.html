@@ -1,0 +1,135 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0; color: #0f172a;">Student Management</h1>
+        <p style="color: #64748b; margin-top: 0.5rem;">Directory, performance, and attendance tracker. Click a row to view/edit details.</p>
+    </div>
+    <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Student</button>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0;">Student Directory</h2>
+        <div style="display: flex; gap: 1rem;">
+            <input type="text" id="search-input" placeholder="Search name or ID..." style="padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid #cbd5e1; min-width: 200px;">
+            <select id="class-filter" style="padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid #cbd5e1; min-width: 150px;">
+                <option value="">All Classes</option>
+            </select>
+            <select id="performance-filter" style="padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid #cbd5e1; min-width: 150px;">
+                <option value="">All Performance</option>
+                <option value="Excellent">Excellent</option>
+                <option value="Good">Good</option>
+                <option value="Average">Average</option>
+                <option value="Poor">Poor</option>
+                <option value="Very Bad">Very Bad</option>
+            </select>
+        </div>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="table" style="cursor: pointer;">
+            <thead>
+                <tr>
+                    <th>Enrollment ID</th>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th>Performance</th>
+                </tr>
+            </thead>
+            <tbody id="student-table-body">
+                <tr><td colspan="4" style="text-align: center; color: #94a3b8;">Loading students...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let studentsData = [];
+
+    function renderTable(data) {
+        const tbody = document.getElementById('student-table-body');
+        tbody.innerHTML = '';
+        if(data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #64748b;">No students found matching your search.</td></tr>';
+            return;
+        }
+        data.forEach(student => {
+            const classroom = student.classroom ? student.classroom.standard + ' - ' + student.classroom.section : 'N/A';
+            const name = student.user.first_name + ' ' + student.user.last_name;
+            let badgeColor = '#64748b';
+            if(student.performance_label === 'Excellent') badgeColor = '#8b5cf6';
+            else if(student.performance_label === 'Good') badgeColor = 'var(--success)';
+            else if(student.performance_label === 'Average') badgeColor = 'var(--warning)';
+            else if(student.performance_label === 'Poor') badgeColor = '#f97316';
+            else if(student.performance_label === 'Very Bad') badgeColor = 'var(--danger)';
+
+            tbody.innerHTML += `
+                <tr onclick="window.location.href='/auth/dashboard/admin/student/${student.id}/'" style="transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <td><strong>${student.student_id}</strong></td>
+                    <td>${name}</td>
+                    <td>${classroom}</td>
+                    <td><span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 0.2rem 0.8rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem;">${student.performance_label || 'No Data'}</span></td>
+                </tr>
+            `;
+        });
+    }
+
+    function applyFilters() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const selectedClass = document.getElementById('class-filter').value;
+        const selectedPerformance = document.getElementById('performance-filter').value;
+
+        const filtered = studentsData.filter(student => {
+            const name = (student.user.first_name + ' ' + student.user.last_name).toLowerCase();
+            const sid = (student.student_id || '').toLowerCase();
+            const classroom = student.classroom ? student.classroom.standard + ' - ' + student.classroom.section : 'N/A';
+            const perf = student.performance_label || 'No Data';
+            
+            const matchesSearch = name.includes(query) || sid.includes(query);
+            const matchesClass = selectedClass === "" || classroom === selectedClass;
+            const matchesPerf = selectedPerformance === "" || perf === selectedPerformance;
+
+            return matchesSearch && matchesClass && matchesPerf;
+        });
+
+        renderTable(filtered);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/students/')
+            .then(response => response.json())
+            .then(data => {
+                studentsData = data;
+                
+                // Populate class dropdown
+                const classSet = new Set();
+                data.forEach(s => {
+                    if(s.classroom) {
+                        const clsName = s.classroom.standard + ' - ' + s.classroom.section;
+                        if (clsName !== '10th - A') {
+                            classSet.add(clsName);
+                        }
+                    }
+                });
+                
+                const classFilter = document.getElementById('class-filter');
+                [...classSet].sort().forEach(cls => {
+                    classFilter.innerHTML += `<option value="${cls}">${cls}</option>`;
+                });
+
+                renderTable(studentsData);
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('student-table-body').innerHTML = '<tr><td colspan="3" style="color: red; text-align: center;">Error loading data</td></tr>';
+            });
+
+        document.getElementById('search-input').addEventListener('input', applyFilters);
+        document.getElementById('class-filter').addEventListener('change', applyFilters);
+        document.getElementById('performance-filter').addEventListener('change', applyFilters);
+    });
+</script>
+{% endblock %}
