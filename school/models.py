@@ -7,6 +7,14 @@ import random
 class Classroom(models.Model):
     standard = models.CharField(max_length=50)
     section = models.CharField(max_length=10)
+    class_teacher = models.OneToOneField(
+        'Teacher', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='assigned_classroom',
+        help_text="The main class teacher for this classroom."
+    )
 
     def __str__(self):
         return f"{self.standard} - {self.section}"
