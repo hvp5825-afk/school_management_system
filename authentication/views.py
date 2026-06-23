@@ -14,24 +14,22 @@ def login_view(request):
         identifier = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
 
-        actual_username = identifier
+        user = None
         
-        # 1. Try to find a Teacher by teacher_id (case-insensitive)
-        teacher = Teacher.objects.filter(teacher_id__iexact=identifier).first()
-        if teacher:
-            actual_username = teacher.user.username
-        else:
-            # 2. Try to find a Student by student_id (case-insensitive)
+        # 1. First, try if the user entered their direct 'username' (like teacher_amit45 or admin)
+        user = authenticate(request, username=identifier, password=password)
+        
+        # 2. If not found, check if they entered a Teacher ID (like TCH-AMIT456)
+        if user is None:
+            teacher = Teacher.objects.filter(teacher_id__iexact=identifier).first()
+            if teacher:
+                user = authenticate(request, username=teacher.user.username, password=password)
+                
+        # 3. If still not found, check if they entered a Student ID (like STU-XYZ)
+        if user is None:
             student = Student.objects.filter(student_id__iexact=identifier).first()
             if student:
-                actual_username = student.user.username
-            else:
-                # 3. As a last resort, check if they typed just "amit489" and try to find a username
-                # containing it, if no direct match was found. We'll rely on Django's authenticate for direct username.
-                pass
-
-        # Authenticate with whichever username was resolved
-        user = authenticate(request, username=actual_username, password=password)
+                user = authenticate(request, username=student.user.username, password=password)
         
         if user is not None:
             login(request, user)
