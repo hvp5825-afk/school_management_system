@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exams & Marks | School Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #10b981;
+            --secondary-hover: #059669;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #a5b4fc;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #e0e7ff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #818cf8;
+        }
+
+        .sidebar-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-icon {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .logout-btn {
+            margin: 1.5rem;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            text-align: center;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            background: var(--card-bg);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .welcome-text h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .welcome-text p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-select:focus, .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: var(--text-dark);
+            vertical-align: middle;
+        }
+
+        .score-input {
+            width: 100px;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .messages {
+            margin-bottom: 1.5rem;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Teacher Panel</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
+                <span class="sidebar-icon">🏠</span> Dashboard
+            </a>
+            <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
+                <span class="sidebar-icon">📅</span> Attendance
+            </a>
+            <a href="{% url 'teacher_add_student' %}" class="sidebar-link">
+                <span class="sidebar-icon">➕</span> Add Student
+            </a>
+            <a href="{% url 'teacher_exams' %}" class="sidebar-link active">
+                <span class="sidebar-icon">📝</span> Exams & Marks
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('Announcement feature coming soon!')">
+                <span class="sidebar-icon">📢</span> Announcement
+            </a>
+            <a href="#" class="sidebar-link" onclick="alert('About Teacher feature coming soon!')">
+                <span class="sidebar-icon">👤</span> About Teacher
+            </a>
+        </nav>
+        <a href="{% url 'login' %}" class="logout-btn">🚪 Logout</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-header">
+            <div class="welcome-text">
+                <h1>Exams & Marks</h1>
+                <p>Record and manage student marks</p>
+            </div>
+            <div style="font-weight: 500; color: var(--text-light);">
+                {{ request.user.first_name }} {{ request.user.last_name }}
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Selection Card -->
+        <div class="card">
+            <h3 class="card-header">Select Class and Subject</h3>
+            <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: flex-end;">
+                <div style="flex: 1;">
+                    <label class="form-label">Class - Subject</label>
+                    <select name="classroom_id" class="form-select" required onchange="this.form.subject_id.value = this.options[this.selectedIndex].getAttribute('data-subject');">
+                        <option value="">-- Select Class --</option>
+                        {% for assign in assignments %}
+                            <option value="{{ assign.classroom.id }}" data-subject="{{ assign.subject.id }}"
+                                {% if selected_classroom.id == assign.classroom.id and selected_subject.id == assign.subject.id %}selected{% endif %}>
+                                {{ assign.classroom }} - {{ assign.subject.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <!-- Hidden input to pass subject_id since the dropdown represents the pair -->
+                    <input type="hidden" name="subject_id" value="{{ selected_subject.id|default:'' }}">
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Load Students</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Marks Entry Card -->
+        {% if selected_classroom and selected_subject %}
+        <div class="card">
+            <h3 class="card-header">
+                Record Marks for {{ selected_classroom }} ({{ selected_subject.name }})
+            </h3>
+            
+            {% if students %}
+            <form method="POST" action="{% url 'teacher_exams' %}?classroom_id={{ selected_classroom.id }}&subject_id={{ selected_subject.id }}">
+                {% csrf_token %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Score Obtained</th>
+                            <th>Max Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td><strong>{{ student.student_id }}</strong></td>
+                            <td>{{ student.user.first_name }} {{ student.user.last_name }}</td>
+                            <td>
+                                <input type="number" step="0.01" name="score_{{ student.id }}" class="score-input" 
+                                       value="{{ student.existing_mark.score|default:'' }}" placeholder="e.g. 85">
+                            </td>
+                            <td>
+                                <input type="number" name="max_score_{{ student.id }}" class="score-input" 
+                                       value="{{ student.existing_mark.max_score|default:'100' }}">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div style="margin-top: 2rem; text-align: right;">
+                    <button type="submit" class="btn btn-primary">Save Marks</button>
+                </div>
+            </form>
+            {% else %}
+            <div class="empty-state">
+                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">s</span>
+                <p>No students found in this class.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </main>
+
+    <script>
+        // Update hidden subject_id when selecting a classroom
+        document.querySelector('select[name="classroom_id"]').addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var subjectId = selectedOption.getAttribute('data-subject');
+            document.querySelector('input[name="subject_id"]').value = subjectId;
+        });
+    </script>
+</body>
+</html>

@@ -9,4 +9,5 @@ urlpatterns = [
     path('dashboard/student/', views.student_dashboard, name='student_dashboard'),
     path('manage-attendance/<int:classroom_id>/', views.manage_attendance, name='manage_attendance'),
     path('dashboard/teacher/add-student/', views.teacher_add_student, name='teacher_add_student'),
+    path('dashboard/teacher/exams/', views.teacher_exams, name='teacher_exams'),
 ]
