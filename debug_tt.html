@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Panel | School Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --sidebar-width: 260px;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #1e1e2d;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            background: #1b1b28;
+            text-align: center;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #a1a1aa;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: #2b2b40;
+            color: white;
+            border-left: 4px solid var(--primary);
+        }
+        .sidebar-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* Main Content Styles */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .navbar {
+            background: var(--surface);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Shared Styles */
+        .card {
+            background: var(--surface);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .alert {
+            padding: 1rem;
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #a7f3d0;
+        }
+        
+    </style>
+</head>
+<body>
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Student Panel</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/auth/dashboard/student/" class="sidebar-link ">
+                <span class="sidebar-icon"><i class="fas fa-home"></i></span> Dashboard
+            </a>
+            <a href="/auth/dashboard/student/attendance/" class="sidebar-link ">
+                <span class="sidebar-icon"><i class="fas fa-calendar-check"></i></span> Attendance
+            </a>
+            <a href="/auth/dashboard/student/exams/" class="sidebar-link ">
+                <span class="sidebar-icon"><i class="fas fa-file-alt"></i></span> Exams & Marks
+            </a>
+                        <a href="/auth/dashboard/student/timetable/" class="sidebar-link active">
+                <span class="sidebar-icon">📅</span> Timetable
+            </a>
+            <a href="/auth/dashboard/student/announcements/" class="sidebar-link ">
+                <span class="sidebar-icon"><i class="fas fa-bullhorn"></i></span> Announcement 
+            </a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid #2b2b40;">
+            <a href="/auth/login/" style="color: #ef4444; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-wrapper">
+        <div class="navbar">
+            <div style="font-weight: 800; color: var(--primary); font-size: 2.2rem; text-align: center; width: 100%; text-transform: capitalize;">
+                Welcome   Panel
+            </div>
+        </div>
+
+        <div class="container">
+            
+
+            
+            
+        </div>
+    </main>
+
+    
+</body>
+
+</html>

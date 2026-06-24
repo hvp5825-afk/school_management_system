@@ -7,13 +7,13 @@ from django.db.models import Count
 from school.models import (
     Teacher, Student, Classroom, Subject, Announcement,
     TeacherAttendance, LeaveRequest, Payroll, AcademicRecord, Attendance,
-    StudentWarning
+    StudentWarning, TeacherWarning
 )
 from .serializers import (
     TeacherSerializer, StudentSerializer, ClassroomSerializer, SubjectSerializer,
     AnnouncementSerializer, TeacherAttendanceSerializer, LeaveRequestSerializer,
     PayrollSerializer, AcademicRecordSerializer, StudentAttendanceSerializer,
-    StudentWarningSerializer
+    StudentWarningSerializer, TeacherWarningSerializer
 )
 
 class AdminDashboardStatsAPIView(APIView):
@@ -101,6 +101,13 @@ class StudentAttendanceViewSet(viewsets.ModelViewSet):
 class StudentWarningViewSet(viewsets.ModelViewSet):
     queryset = StudentWarning.objects.all()
     serializer_class = StudentWarningSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(issued_by=self.request.user)
+
+class TeacherWarningViewSet(viewsets.ModelViewSet):
+    queryset = TeacherWarning.objects.all()
+    serializer_class = TeacherWarningSerializer
     
     def perform_create(self, serializer):
         serializer.save(issued_by=self.request.user)

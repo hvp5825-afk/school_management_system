@@ -1,233 +1,24 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Students - Teacher Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f3f4f6;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --border: #e5e7eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --sidebar-width: 260px;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: #1e1e2d;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
-        .sidebar-header {
-            padding: 1.5rem;
-            background: #1b1b28;
-            text-align: center;
-        }
-        .sidebar-header h2 {
-            margin: 0;
-            color: white;
-            font-size: 1.5rem;
-            letter-spacing: 0.5px;
-        }
-        .sidebar-nav {
-            flex: 1;
-            padding: 1.5rem 0;
-            overflow-y: auto;
-        }
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            color: #a1a1aa;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .sidebar-link:hover, .sidebar-link.active {
-            background: #2b2b40;
-            color: white;
-            border-left: 4px solid var(--primary);
-        }
-        .sidebar-icon {
-            margin-right: 15px;
-            font-size: 1.2rem;
-        }
+{% extends 'authentication/teacher_base.html' %}
 
-        /* Main Content Styles */
-        .main-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .navbar {
-            background: var(--surface);
-            padding: 1.2rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .action-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .action-card {
-            background: var(--surface);
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            padding: 3rem 2rem;
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
-            color: var(--text);
-            border: 2px solid transparent;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .action-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-
-        .action-card.add-card:hover {
-            border-color: var(--primary);
-        }
-        .action-card.remove-card:hover {
-            border-color: var(--danger);
-        }
-
-        .action-icon {
-            font-size: 3.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .add-card .action-icon {
-            color: var(--primary);
-        }
-
-        .remove-card .action-icon {
-            color: var(--danger);
-        }
-
-        .action-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .action-desc {
-            color: #6b7280;
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-
-    </style>
-</head>
-<body>
-    
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2>Teacher Panel</h2>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
-                <span class="sidebar-icon">🏠</span> Dashboard
-            </a>
-            <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
-                <span class="sidebar-icon">📅</span> Attendance
-            </a>
-            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link active">
-                <span class="sidebar-icon">👥</span> Manage Students
-            </a>
-            <a href="{% url 'teacher_exams' %}" class="sidebar-link">
-                <span class="sidebar-icon">📝</span> Exams & Marks
-            </a>
-            <a href="{% url 'teacher_announcements' %}" class="sidebar-link">
-                <span class="sidebar-icon">📢</span> Announcement
-            </a>
-            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link">
-                <span class="sidebar-icon">📄</span> Leave Requests
-            </a>
-            <a href="{% url 'about_teacher' %}" class="sidebar-link">
-                <span class="sidebar-icon">👤</span> About Teacher
-            </a>
-        </nav>
-        <div style="padding: 1.5rem; border-top: 1px solid #2b2b40;">
-            <a href="{% url 'login' %}" style="color: #ef4444; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
-                <span class="sidebar-icon">🚪</span> Logout
-            </a>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-wrapper">
-        <div class="navbar">
-            <h2 style="margin: 0; color: var(--text);">Manage Students</h2>
-            <div style="font-weight: 600; color: #6b7280;">
-                {{ request.user.first_name }} {{ request.user.last_name }}
-            </div>
-        </div>
-    
-        <div class="container">
+{% block content %}
+<div class="container">
             <div style="text-align: center; margin-bottom: 3rem;">
                 <h1 style="color: var(--text); font-size: 2.2rem; margin-bottom: 0.5rem;">What would you like to do?</h1>
                 <p style="color: #6b7280; font-size: 1.1rem;">Select an action below to manage student records in the system.</p>
             </div>
             
-            <div class="action-cards">
-                <a href="{% url 'teacher_add_student' %}" class="action-card add-card">
-                    <i class="fas fa-user-plus action-icon"></i>
-                    <div class="action-title">Add Student</div>
-                    <div class="action-desc">Register a new student, assign them to a classroom, and generate their login credentials.</div>
+            <div class="action-cards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                <a href="{% url 'teacher_add_student' %}" class="action-card" style="background: var(--surface); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 3rem 2rem; text-align: center; text-decoration: none; color: var(--text); border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s;">
+                    <i class="fas fa-user-plus" style="font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--primary);"></i>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Add Student</div>
+                    <div style="color: #6b7280; font-size: 1rem; line-height: 1.5;">Register a new student, assign them to a classroom, and generate their login credentials.</div>
                 </a>
                 
-                <a href="{% url 'teacher_remove_student' %}" class="action-card remove-card">
-                    <i class="fas fa-user-minus action-icon"></i>
-                    <div class="action-title">Remove Student</div>
-                    <div class="action-desc">Search for an existing student and permanently remove them from the system.</div>
+                <a href="{% url 'teacher_remove_student' %}" class="action-card" style="background: var(--surface); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 3rem 2rem; text-align: center; text-decoration: none; color: var(--text); border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s;">
+                    <i class="fas fa-user-minus" style="font-size: 3.5rem; margin-bottom: 1.5rem; color: #ef4444;"></i>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Remove Student</div>
+                    <div style="color: #6b7280; font-size: 1rem; line-height: 1.5;">Search for an existing student and permanently cancel their admission.</div>
                 </a>
             </div>
         </div>
-    </main>
-</body>
-</html>
+{% endblock %}

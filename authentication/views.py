@@ -38,6 +38,21 @@ def login_view(request):
             login(request, user)
             role = getattr(user, 'role', None)
             
+            # Auto-detect role from profiles if admin forgot to set the role field manually
+            if not role or role not in ['admin', 'teacher', 'student']:
+                if hasattr(user, 'student_profile'):
+                    role = 'student'
+                    user.role = 'student'
+                    user.save()
+                elif hasattr(user, 'teacher_profile'):
+                    role = 'teacher'
+                    user.role = 'teacher'
+                    user.save()
+                elif user.is_superuser:
+                    role = 'admin'
+                    user.role = 'admin'
+                    user.save()
+            
             if role == 'admin':
                 return redirect('admin_dashboard')
             elif role == 'teacher':
@@ -45,7 +60,8 @@ def login_view(request):
             elif role == 'student':
                 return redirect('student_dashboard')
             else:
-                return redirect('login') # Fallback if no role is found
+                messages.error(request, "Account error: Role not assigned. Contact admin.")
+                return redirect('login')
         else:
             messages.error(request, "Invalid credentials. Please try again.")
             
@@ -113,7 +129,10 @@ def teacher_attendance(request):
     except Exception:
         return HttpResponse("Teacher profile not found for this user.")
 
-    classrooms = Classroom.objects.filter(timetable__teacher=teacher_profile).distinct()
+    # Only allow attendance for the class they are Class Teacher of
+    classrooms = []
+    if hasattr(teacher_profile, 'assigned_classroom'):
+        classrooms = [teacher_profile.assigned_classroom]
     
     selected_classroom = None
     students = []
@@ -222,6 +241,8 @@ def student_announcements(request):
     student = Student.objects.get(user=request.user)
     
     # All announcements are common for all students
+    from school.models import Notification
+    Notification.objects.filter(user=request.user, is_read=False, link__icontains='announcements').update(is_read=True)
     announcements = Announcement.objects.all().order_by('-date_posted')
     
     context = {
@@ -308,7 +329,10 @@ def teacher_add_student(request):
         messages.error(request, "Access denied.")
         return redirect('login')
 
-    classrooms = Classroom.objects.all()
+    # Restrict to assigned classroom
+    classrooms = []
+    if hasattr(request.user, 'teacher_profile') and getattr(request.user.teacher_profile, 'assigned_classroom', None):
+        classrooms = [request.user.teacher_profile.assigned_classroom]
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -369,7 +393,9 @@ def teacher_remove_student(request):
         messages.error(request, "Access denied.")
         return redirect('login')
 
-    classrooms = Classroom.objects.all()
+    classrooms = []
+    if hasattr(request.user, 'teacher_profile') and getattr(request.user.teacher_profile, 'assigned_classroom', None):
+        classrooms = [request.user.teacher_profile.assigned_classroom]
     students = []
     search_query = request.GET.get('search_query', '').strip()
     classroom_id = request.GET.get('classroom_id', '')
@@ -418,24 +444,22 @@ def teacher_exams(request):
     except Teacher.DoesNotExist:
         return redirect('login')
 
-    # Get unique classes and subjects the teacher teaches
-    timetables = Timetable.objects.filter(teacher=teacher).select_related('classroom', 'subject')
-    unique_classrooms = set()
-    unique_subjects = set()
-    for t in timetables:
-        unique_classrooms.add(t.classroom)
-        unique_subjects.add(t.subject)
-    
-    unique_classrooms = list(unique_classrooms)
-    unique_subjects = list(unique_subjects)
+    # Only allow exams for the class they are Class Teacher of
+    unique_classrooms = []
+    if hasattr(teacher, 'assigned_classroom') and teacher.assigned_classroom:
+        unique_classrooms = [teacher.assigned_classroom]
+        
+    unique_subjects = []
+    if hasattr(teacher, 'assigned_classroom') and teacher.assigned_classroom:
+        unique_subjects = list(Subject.objects.filter(classroom=teacher.assigned_classroom))
 
     selected_classroom_id = request.GET.get('classroom_id')
+    selected_exam_name = request.GET.get('exam_name')
+    
+    # Second form params
     selected_subject_id = request.GET.get('subject_id')
-    exam_id = request.GET.get('exam_id')
     exam_date_str = request.GET.get('exam_date')
-    exam_name = request.GET.get('exam_name')
     max_score_val = request.GET.get('max_score', '100')
-    action_type = request.GET.get('action_type', 'show')
     export_csv = request.GET.get('export_csv')
     
     students = []
@@ -443,42 +467,60 @@ def teacher_exams(request):
     selected_subject = None
     selected_exam = None
     selected_date = None
-    available_exams = []
+    action_type = request.GET.get('action_type', 'show')
 
-    if selected_classroom_id and selected_subject_id:
+    # Step 1: Class and Exam Name selected
+    if selected_classroom_id and selected_exam_name:
         try:
             selected_classroom = Classroom.objects.get(id=selected_classroom_id)
-            selected_subject = Subject.objects.get(id=selected_subject_id)
             students = list(selected_classroom.students.all())
             
-            # Get existing exams for this class & subject
-            from school.models import Exam, Mark
-            available_exams = Exam.objects.filter(classroom=selected_classroom, subject=selected_subject).order_by('-date')
+            # Default to today's date
+            from django.utils import timezone
+            selected_date = timezone.now().date()
             
-            # Determine the current exam
-            if exam_name and exam_date_str:
-                from datetime import datetime
-                from django.utils import timezone
-                try:
-                    selected_date = datetime.strptime(exam_date_str, '%Y-%m-%d').date()
-                except ValueError:
-                    selected_date = timezone.now().date()
+            # Step 2: If subject is also selected, create/fetch the actual Exam object
+            if selected_subject_id:
+                selected_subject = Subject.objects.get(id=selected_subject_id)
+                
+                if exam_date_str:
+                    from datetime import datetime
+                    try:
+                        selected_date = datetime.strptime(exam_date_str, '%Y-%m-%d').date()
+                    except ValueError:
+                        pass
                 
                 max_sc = int(max_score_val) if max_score_val.isdigit() else 100
-                selected_exam, _ = Exam.objects.get_or_create(
-                    name=exam_name,
-                    classroom=selected_classroom,
-                    subject=selected_subject,
-                    defaults={'date': selected_date, 'max_score': max_sc, 'teacher': teacher}
-                )
-            elif exam_id:
-                selected_exam = Exam.objects.filter(id=exam_id).first()
+                from school.models import Exam, Mark
+                
+                action_type = request.GET.get('action_type', 'show')
+                
+                if action_type == 'edit':
+                    selected_exam, created = Exam.objects.get_or_create(
+                        name=selected_exam_name,
+                        classroom=selected_classroom,
+                        subject=selected_subject,
+                        date=selected_date,
+                        defaults={'max_score': max_sc, 'teacher': teacher}
+                    )
+                    if not created:
+                        selected_exam.max_score = max_sc
+                        selected_exam.save()
+                else:
+                    try:
+                        selected_exam = Exam.objects.get(
+                            name=selected_exam_name,
+                            classroom=selected_classroom,
+                            subject=selected_subject,
+                            date=selected_date
+                        )
+                    except Exam.DoesNotExist:
+                        selected_exam = None
+                
+                # Fetch existing marks
+                marks = []
                 if selected_exam:
-                    selected_date = selected_exam.date
-
-            # Fetch existing marks if an exam is selected
-            if selected_exam:
-                marks = Mark.objects.filter(student__in=students, exam=selected_exam)
+                    marks = Mark.objects.filter(student__in=students, exam=selected_exam)
                 marks_dict = {m.student_id: m for m in marks}
                 
                 for student in students:
@@ -489,7 +531,7 @@ def teacher_exams(request):
                     import csv
                     from django.http import HttpResponse
                     response = HttpResponse(content_type='text/csv')
-                    response['Content-Disposition'] = f'attachment; filename="marks_{selected_classroom}_{selected_exam.name}.csv"'
+                    response['Content-Disposition'] = f'attachment; filename="marks_{selected_classroom}_{selected_exam.name}_{selected_subject.name}.csv"'
                     
                     writer = csv.writer(response)
                     writer.writerow(['Student ID', 'Student Name', 'Score Obtained', 'Max Score', 'Percentage'])
@@ -515,7 +557,7 @@ def teacher_exams(request):
         except Exam.DoesNotExist:
             selected_exam = None
             
-        if selected_exam and selected_classroom and selected_subject:
+        if selected_exam and selected_classroom:
             has_error = False
             for student in students:
                 score_val = request.POST.get(f'score_{student.id}')
@@ -540,25 +582,26 @@ def teacher_exams(request):
                         continue # Skip invalid numbers
 
             if not has_error:
-                messages.success(request, f"Marks saved successfully for {selected_classroom} - {selected_exam.name}!")
+                messages.success(request, f"Marks saved successfully for {selected_exam.subject.name} - {selected_exam.name}!")
             else:
                 messages.warning(request, f"Some marks were saved, but some failed due to exceeding max score.")
-            return redirect(f"{request.path}?classroom_id={selected_classroom.id}&subject_id={selected_subject.id}&exam_id={selected_exam.id}&action_type=show")
+            
+            # Redirect to GET to show updated data
+            return redirect(f"{request.path}?classroom_id={selected_classroom.id}&exam_name={selected_exam.name}&subject_id={selected_exam.subject.id}&exam_date={selected_exam.date}&action_type=show")
 
     context = {
         'unique_classrooms': unique_classrooms,
         'unique_subjects': unique_subjects,
         'selected_classroom': selected_classroom,
+        'selected_exam_name': selected_exam_name,
         'selected_subject': selected_subject,
         'selected_exam': selected_exam,
         'selected_date': selected_date,
-        'available_exams': available_exams,
         'students': students,
         'action_type': action_type,
     }
     return render(request, 'authentication/teacher_exams.html', context)
 
-@login_required
 def teacher_announcements(request):
     if getattr(request.user, 'role', None) != 'teacher':
         messages.error(request, 'Access denied.')
@@ -587,6 +630,8 @@ def teacher_announcements(request):
             messages.success(request, 'Announcement posted successfully!')
             return redirect('teacher_announcements')
 
+    from school.models import Notification
+    Notification.objects.filter(user=request.user, is_read=False, link__icontains='announcements').update(is_read=True)
     announcements = Announcement.objects.filter(teacher=teacher).order_by('-date_posted')
     return render(request, 'authentication/teacher_announcements.html', {'announcements': announcements})
 
@@ -609,7 +654,11 @@ def teacher_leave_requests(request):
         messages.error(request, 'Access denied.')
         return redirect('login')
         
-    from school.models import LeaveRequest
+    from school.models import LeaveRequest, Notification
+    
+    # Mark all unread leave-request related notifications as read
+    Notification.objects.filter(user=request.user, is_read=False, link__icontains='leave-requests').update(is_read=True)
+    
     leave_requests = LeaveRequest.objects.filter(user=request.user).order_by('-date_applied')
     return render(request, 'authentication/teacher_leave_requests.html', {'leave_requests': leave_requests})
 
@@ -622,10 +671,15 @@ def admin_dashboard(request):
     return render(request, 'admin/admin_dashboard.html')
 
 @login_required
+@login_required
 def admin_teacher_detail(request, pk):
     if not request.user.is_superuser:
         return redirect('login')
-    return render(request, 'admin/admin_teacher_detail.html', {'teacher_id': pk})
+    from school.models import Teacher, TeacherWarning
+    from django.shortcuts import get_object_or_404
+    teacher = get_object_or_404(Teacher, pk=pk)
+    warnings = teacher.warnings.all()
+    return render(request, 'admin/admin_teacher_detail.html', {'teacher_id': pk, 'teacher': teacher, 'warnings': warnings})
 
 @login_required
 def admin_student_detail(request, pk):
@@ -704,6 +758,48 @@ def admin_teachers(request):
     return render(request, 'admin/admin_teachers.html')
 
 @login_required
+
+@login_required
+def admin_classrooms(request):
+    if getattr(request.user, 'role', None) != 'admin' and not request.user.is_superuser:
+        return HttpResponse('Unauthorized', status=401)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add_classroom':
+            standard = request.POST.get('standard')
+            section = request.POST.get('section')
+            if standard and section:
+                try:
+                    Classroom.objects.create(standard=standard, section=section)
+                    messages.success(request, f'Classroom {standard}-{section} added successfully.')
+                except Exception as e:
+                    messages.error(request, f'Error creating classroom: {str(e)}')
+            else:
+                messages.error(request, 'Standard and section are required.')
+        else:
+            classroom_id = request.POST.get('classroom_id')
+            teacher_id = request.POST.get('teacher_id')
+            
+            try:
+                classroom = Classroom.objects.get(id=classroom_id)
+                if teacher_id:
+                    teacher = Teacher.objects.get(id=teacher_id)
+                    classroom.class_teacher = teacher
+                else:
+                    classroom.class_teacher = None
+                classroom.save()
+                messages.success(request, f'Class teacher updated successfully for {classroom.standard}-{classroom.section}.')
+            except Exception as e:
+                messages.error(request, f'Error updating class teacher: {str(e)}')
+            
+        return redirect('admin_classrooms')
+
+    classrooms = Classroom.objects.all().order_by('standard', 'section')
+    teachers = Teacher.objects.all()
+    return render(request, 'admin/admin_classrooms.html', {'classrooms': classrooms, 'teachers': teachers})
+
 def admin_students(request):
     if not request.user.is_superuser:
         return redirect('login')
@@ -723,3 +819,121 @@ def admin_leave_requests(request):
     from school.models import LeaveRequest
     leave_requests = LeaveRequest.objects.all().select_related('user').order_by('-date_applied')
     return render(request, 'admin/admin_leave_requests.html', {'leave_requests': leave_requests})
+
+
+def get_timetable_grid(tt_entries):
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    time_slots = [
+        (1, "07:00 AM - 07:35 AM"),
+        (2, "07:35 AM - 08:10 AM"),
+        (3, "08:10 AM - 08:45 AM"),
+        (4, "08:45 AM - 09:20 AM"),
+        ("BREAK", "09:20 AM - 09:50 AM"),
+        (5, "09:50 AM - 10:25 AM"),
+        (6, "10:25 AM - 11:00 AM"),
+        (7, "11:00 AM - 11:30 AM"),
+        (8, "11:30 AM - 12:00 PM")
+    ]
+    
+    tt_dict = {}
+    if tt_entries:
+        for t in tt_entries:
+            tt_dict[(t.period_number, t.day)] = t
+            
+    grid = []
+    for slot in time_slots:
+        period_num = slot[0]
+        time_str = slot[1]
+        
+        if period_num == "BREAK":
+            grid.append({
+                'is_break': True,
+                'time': time_str
+            })
+        else:
+            day_data = []
+            for d in days:
+                day_data.append(tt_dict.get((period_num, d), None))
+                
+            grid.append({
+                'is_break': False,
+                'period': period_num,
+                'time': time_str,
+                'days': day_data
+            })
+    return grid, days
+
+@login_required
+def admin_timetable(request):
+    if getattr(request.user, 'role', None) != 'admin' and not request.user.is_superuser:
+        return HttpResponse('Unauthorized', status=401)
+        
+    classrooms = Classroom.objects.all().order_by('standard', 'section')
+    
+    timetable_grids = {}
+    days = []
+    for c in classrooms:
+        tt_entries = Timetable.objects.filter(classroom=c)
+        grid, days = get_timetable_grid(tt_entries)
+        timetable_grids[c] = grid
+        
+    return render(request, 'admin/admin_timetable.html', {'timetable_grids': timetable_grids, 'days': days})
+
+@login_required
+def teacher_timetable(request):
+    if getattr(request.user, 'role', None) != 'teacher':
+        return HttpResponse('Unauthorized', status=401)
+    
+    try:
+        teacher = request.user.teacher_profile
+        tt_entries = Timetable.objects.filter(teacher=teacher)
+        grid, days = get_timetable_grid(tt_entries)
+    except Exception:
+        grid, days = get_timetable_grid([])
+        
+    return render(request, 'authentication/teacher_timetable.html', {'grid': grid, 'days': days})
+
+@login_required
+def student_timetable(request):
+    if getattr(request.user, 'role', None) != 'student':
+        return HttpResponse('Unauthorized', status=401)
+    
+    try:
+        student = request.user.student_profile
+        tt_entries = Timetable.objects.filter(classroom=student.classroom)
+        grid, days = get_timetable_grid(tt_entries)
+    except Exception:
+        grid, days = get_timetable_grid([])
+        
+    return render(request, 'authentication/student_timetable.html', {'grid': grid, 'days': days})
+
+
+from django.http import JsonResponse
+from school.models import Notification
+
+def mark_notifications_read(request):
+    if request.user.is_authenticated and request.method == 'POST':
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def student_notifications(request):
+    if getattr(request.user, 'role', None) != 'student':
+        return redirect('login')
+    from school.models import StudentWarning, Student
+    from django.shortcuts import get_object_or_404
+    student = get_object_or_404(Student, user=request.user)
+    warnings = StudentWarning.objects.filter(student=student).order_by('-date_issued')
+    return render(request, 'authentication/student_notifications.html', {'warnings': warnings})
+
+@login_required
+def teacher_notifications(request):
+    if getattr(request.user, 'role', None) != 'teacher':
+        return redirect('login')
+    from school.models import TeacherWarning, Teacher
+    from django.shortcuts import get_object_or_404
+    teacher = get_object_or_404(Teacher, user=request.user)
+    warnings = TeacherWarning.objects.filter(teacher=teacher).order_by('-date_issued')
+    return render(request, 'authentication/teacher_notifications.html', {'warnings': warnings})

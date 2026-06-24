@@ -20,12 +20,12 @@
         margin: 0 auto 1rem auto;
         color: white;
     }
-    .bg-success { background: var(--success, #10b981); }
+    .bg-primary { background: var(--primary); box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3); }
     .bg-warning { background: var(--warning, #f59e0b); }
 </style>
 {% endblock %}
 
-{% block student_content %}
+{% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <h2 style="margin: 0;">Attendance Record</h2>
 </div>
@@ -34,7 +34,7 @@
 
 <div class="card" style="text-align: center; margin-bottom: 2rem;">
     <h3 style="margin-top: 0;">Overall Attendance</h3>
-    <div class="stat-circle {% if attendance_percentage >= 75 %}bg-success{% else %}bg-warning{% endif %}">
+    <div class="stat-circle {% if attendance_percentage >= 75 %}bg-primary{% else %}bg-warning{% endif %}">
         {{ attendance_percentage|default:"0" }}%
     </div>
     <p style="color: #6b7280; margin-bottom: 0;">{{ present_days|default:"0" }} days present out of {{ total_days|default:"0" }} total days</p>

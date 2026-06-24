@@ -1,0 +1,57 @@
+{% extends "admin/admin_base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2><i class="fas fa-calendar-alt" style="color: var(--primary); margin-right: 10px;"></i> Master Timetable (8 Lectures)</h2>
+</div>
+
+{% for classroom, grid in timetable_grids.items %}
+<div class="card" style="margin-bottom: 3rem;">
+    <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+        Class {{ classroom.standard }} - {{ classroom.section }}
+    </h3>
+    
+    <div style="overflow-x: auto;">
+        <table class="table" style="min-width: 800px; text-align: center;">
+            <thead>
+                <tr>
+                    <th style="background: var(--primary); color: white; width: 100px; text-align: center;">Period / Day</th>
+                    {% for day in days %}
+                        <th style="background: var(--primary); color: white; text-align: center;">{{ day }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                        {% for row in grid %}
+                            {% if row.is_break %}
+                                <tr>
+                                    <td colspan="7" style="padding: 1rem; border: 1px solid #e2e8f0; font-weight: 700; color: #ef4444; background: #fee2e2; text-align: center; letter-spacing: 2px;">
+                                        LUNCH BREAK ({{ row.time }})
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td style="padding: 1rem; border: 1px solid #e2e8f0; font-weight: 600; color: #334155; background: #f8fafc; white-space: nowrap;">
+                                        Lecture {{ row.period }}<br>
+                                        <span style="font-size: 0.8rem; color: #64748b; font-weight: 400;">{{ row.time }}</span>
+                                    </td>
+                                    {% for t in row.days %}
+                                        <td style="padding: 0.75rem; border: 1px solid #e2e8f0;">
+                                            {% if t %}
+                                                <div style="font-weight: 600; color: #0f172a;">{{ t.subject.name }}</div>
+                                                <div style="font-size: 0.85em; color: #64748b; margin-top: 5px;">{{ t.teacher.user.first_name }} {{ t.teacher.user.last_name }}</div>
+                                            {% else %}
+                                                <span style="color: #cbd5e1;">--</span>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

@@ -2,51 +2,56 @@ import os
 import django
 import random
 
-# Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'school_management.settings')
 django.setup()
 
-from django.contrib.auth import get_user_model
-from school.models import Student, Classroom
+from authentication.models import User
+from school.models import Classroom, Student
 
-User = get_user_model()
+def seed_students_for_classes():
+    targets = [
+        {'standard': 8, 'section': 'B'},
+        {'standard': 9, 'section': 'A'},
+        {'standard': 9, 'section': 'B'}
+    ]
 
-names = [
-    "Aarav", "Vihaan", "Vivaan", "Ananya", "Diya", "Aditya", "Sai", "Arjun", "Ishaan", "Riya",
-    "Aadhya", "Krishna", "Dhruv", "Aarohi", "Anvi", "Kabir", "Shaurya", "Atharv", "Prisha", "Avni",
-    "Rudra", "Myra", "Kian", "Reyansh", "Anika", "Saanvi", "Ayaansh", "Navya", "Tara", "Zara"
-]
+    first_names = ['Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Ayaan', 'Krishna', 'Ishaan', 'Shaurya', 'Ananya', 'Diya', 'Aadhya', 'Pari', 'Saanvi']
+    last_names = ['Sharma', 'Verma', 'Gupta', 'Kumar', 'Singh', 'Patel', 'Joshi', 'Mehta', 'Nair', 'Das', 'Reddy', 'Chauhan', 'Yadav']
 
-classroom, _ = Classroom.objects.get_or_create(standard="10th", section="A")
-
-markdown_content = "# Seeded Student Credentials\n\n"
-markdown_content += "| Student Name | Student ID (Username) | Password |\n"
-markdown_content += "|---|---|---|\n"
-
-count = 0
-for i, name in enumerate(names):
-    username = f"{name.lower()}{random.randint(100,999)}"
-    password = "student123"
-    
-    # Check if exists to avoid errors on rerun
-    if not User.objects.filter(username=username).exists():
-        user = User.objects.create_user(
-            username=username,
-            email=f"{username}@school.com",
-            password=password,
-            first_name=name,
-            last_name="Kumar",
-            role="student"
-        )
+    for target in targets:
+        std = target['standard']
+        sec = target['section']
+        class_name = f"{std}{sec}"
         
-        student = Student.objects.create(user=user, classroom=classroom)
-        
-        markdown_content += f"| {name} Kumar | **{student.student_id}** | {password} |\n"
-        count += 1
+        try:
+            classroom = Classroom.objects.get(standard=std, section=sec)
+            print(f"\\nSeeding students for {std}-{sec}...")
+        except Classroom.DoesNotExist:
+            print(f"\\nClassroom {std}-{sec} not found. Skipping.")
+            continue
 
-# Save to an artifact file
-artifact_path = r"C:\Users\Harsh\.gemini\antigravity-ide\brain\2fed6cc9-763f-4702-b90f-4ca919d5ab87\student_credentials.md"
-with open(artifact_path, "w") as f:
-    f.write(markdown_content)
+        for i in range(10):
+            fname = random.choice(first_names)
+            lname = random.choice(last_names)
+            username = f"stu_{class_name.lower()}_{i}_{random.randint(1000, 9999)}"
+            email = f"{username}@example.com"
 
-print(f"Successfully seeded {count} students!")
+            user = User.objects.create_user(
+                username=username,
+                password='password123',
+                first_name=fname,
+                last_name=lname,
+                email=email
+            )
+            user.role = 'student'
+            user.save()
+
+            student = Student.objects.create(
+                user=user,
+                student_id=f"{class_name}-{1000+i}",
+                classroom=classroom
+            )
+            print(f"  Added: {student.user.first_name} {student.user.last_name} (ID: {student.student_id})")
+
+if __name__ == '__main__':
+    seed_students_for_classes()

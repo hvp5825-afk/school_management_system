@@ -1,204 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Attendance - {{ classroom }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f3f4f6;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --border: #e5e7eb;
-            --success: #10b981;
-            --sidebar-width: 260px;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: #1e1e2d;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
-        .sidebar-header {
-            padding: 1.5rem;
-            background: #1b1b28;
-            text-align: center;
-        }
-        .sidebar-header h2 {
-            margin: 0;
-            color: white;
-            font-size: 1.5rem;
-            letter-spacing: 0.5px;
-        }
-        .sidebar-nav {
-            flex: 1;
-            padding: 1.5rem 0;
-            overflow-y: auto;
-        }
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            color: #a1a1aa;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .sidebar-link:hover, .sidebar-link.active {
-            background: #2b2b40;
-            color: white;
-            border-left: 4px solid var(--primary);
-        }
-        .sidebar-icon {
-            margin-right: 15px;
-            font-size: 1.2rem;
-        }
+{% extends 'authentication/teacher_base.html' %}
 
-        /* Main Content Styles */
-        .main-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .navbar {
-            background: var(--surface);
-            padding: 1.2rem 2rem;
-            display: flex;
-            justify-content: space-between; /* Adjusted to space-between for the back button and title */
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .card {
-            background: var(--surface);
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            padding: 2rem;
-        }
-        .student-item {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: background 0.2s;
-            border-radius: 0.5rem;
-        }
-        .student-item:hover {
-            background: #f9fafb;
-        }
-        .student-item.active {
-            background: #e0e7ff;
-            border-left: 4px solid var(--primary);
-        }
-        .btn {
-            padding: 0.75rem 1.5rem;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            font-family: inherit;
-        }
-        .btn:hover { opacity: 0.9; }
-        
-        .att-btn {
-            padding: 0.4rem 0.8rem;
-            border: 1px solid var(--border);
-            background: white;
-            color: var(--text);
-            border-radius: 0.3rem;
-            cursor: pointer;
-            font-weight: 600;
-            margin-right: 0.5rem;
-            transition: all 0.2s;
-        }
-        .att-btn.present.active {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
-        }
-        .att-btn.absent.active {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-        }
-    </style>
-</head>
-<body>
-    
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2>Teacher Panel</h2>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
-                <span class="sidebar-icon">🏠</span> Dashboard
-            </a>
-            <a href="{% url 'teacher_attendance' %}" class="sidebar-link active">
-                <span class="sidebar-icon">📅</span> Attendance
-            </a>
-            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link">
-                <span class="sidebar-icon">👥</span> Manage Students
-            </a>
-            <a href="#" class="sidebar-link" onclick="alert('Exams feature coming soon!')">
-                <span class="sidebar-icon">📝</span> Exams
-            </a>
-            <a href="{% url 'teacher_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_announcements' %}active{% endif %}">
-                <span class="sidebar-icon">📢</span> Announcement
-            </a>
-            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_leave_requests' %}active{% endif %}">
-                <span class="sidebar-icon">📄</span> Leave Requests
-            </a>
-            <a href="{% url 'about_teacher' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about_teacher' %}active{% endif %}">
-                <span class="sidebar-icon">👤</span> About Teacher
-            </a>
-        </nav>
-        <div style="padding: 1.5rem; border-top: 1px solid #2b2b40;">
-            <a href="{% url 'login' %}" style="color: #ef4444; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
-                <span class="sidebar-icon">🚪</span> Logout
-            </a>
-        </div>
-    </aside>
+{% block page_title %}<i class="fas fa-calendar-check"></i> Manage Attendance - {{ classroom }}{% endblock %}
 
-    <!-- Main Content -->
-    <main class="main-wrapper">
-        <div class="navbar">
-            <h2 style="margin: 0; color: var(--text);">Attendance: {{ classroom }} ({{ target_date }})</h2>
-            <div style="font-weight: 600; color: var(--text);">
-                <a href="{% url 'teacher_attendance' %}" style="color:var(--primary); font-weight: 500; text-decoration: none;">&larr; Back to Selection</a>
-            </div>
-        </div>
+{% block extra_css %}
+<style>
+    .student-item {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background 0.2s;
+        border-radius: 0.5rem;
+    }
+    .student-item:hover {
+        background: #f9fafb;
+    }
+    .student-item.active {
+        background: #e0f2fe;
+        border-left: 4px solid var(--primary);
+    }
     
-    <div class="container">
+    .att-btn {
+        padding: 0.4rem 0.8rem;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--text-main);
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-weight: 600;
+        margin-right: 0.5rem;
+        transition: all 0.2s;
+    }
+    .att-btn.present.active {
+        background: #10b981; /* Success Green */
+        color: white;
+        border-color: #10b981;
+    }
+    .att-btn.absent.active {
+        background: #ef4444; /* Danger Red */
+        color: white;
+        border-color: #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
         
         {% if action_type == 'take' %}
         <!-- Sequential Attendance View -->
@@ -287,7 +133,8 @@
 
     </div>
 
-    <!-- Exit Safeguard Modal -->
+    
+<!-- Exit Safeguard Modal -->
     <div id="exitModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
         <div class="card" style="max-width: 400px; width: 100%; text-align: center; padding: 2rem;">
             <h3 style="margin-top: 0; font-size: 1.5rem;">Exit Attendance</h3>
@@ -305,7 +152,11 @@
         <div id="hidden-inputs-container"></div>
     </form>
 
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
         const students = [
             {% for student in students %}
             {
@@ -452,6 +303,4 @@
             document.body.removeChild(link);
         }
     </script>
-    </main>
-</body>
-</html>
+{% endblock %}

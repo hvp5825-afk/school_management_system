@@ -1,319 +1,7 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exams & Marks | School Management System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --secondary: #10b981;
-            --secondary-hover: #059669;
-            --bg-color: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-dark: #1f2937;
-            --text-light: #6b7280;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-        }
+{% extends 'authentication/teacher_base.html' %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-header {
-            padding: 2rem 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.2);
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #a5b4fc;
-        }
-
-        .sidebar-nav {
-            padding: 1.5rem 0;
-            flex-grow: 1;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            color: #e0e7ff;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            border-left: 4px solid transparent;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border-left-color: #818cf8;
-        }
-
-        .sidebar-link.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left-color: var(--primary);
-            font-weight: 600;
-        }
-
-        .sidebar-icon {
-            margin-right: 1rem;
-            font-size: 1.2rem;
-        }
-
-        .logout-btn {
-            margin: 1.5rem;
-            padding: 0.75rem;
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            text-align: center;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .logout-btn:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex-grow: 1;
-            padding: 2.5rem;
-            overflow-y: auto;
-        }
-
-        .top-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2.5rem;
-            background: var(--card-bg);
-            padding: 1.5rem 2rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .welcome-text h1 {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 0.25rem;
-        }
-
-        .welcome-text p {
-            color: var(--text-light);
-            font-size: 0.95rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-
-        .card-header {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: var(--text-dark);
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 0.75rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-dark);
-        }
-
-        .form-select, .form-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .form-select:focus, .form-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        th {
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: var(--text-light);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            color: var(--text-dark);
-            vertical-align: middle;
-        }
-
-        .score-input {
-            width: 100px;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .messages {
-            margin-bottom: 1.5rem;
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .message.success {
-            background-color: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-        
-        .message.error {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-light);
-        }
-    </style>
-</head>
-<body>
-    
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2>Teacher Panel</h2>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
-                <span class="sidebar-icon">🏠</span> Dashboard
-            </a>
-            <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
-                <span class="sidebar-icon">📅</span> Attendance
-            </a>
-            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link">
-                <span class="sidebar-icon">👥</span> Manage Students
-            </a>
-            <a href="{% url 'teacher_exams' %}" class="sidebar-link active">
-                <span class="sidebar-icon">📝</span> Exams & Marks
-            </a>
-            <a href="{% url 'teacher_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_announcements' %}active{% endif %}">
-                <span class="sidebar-icon">📢</span> Announcement
-            </a>
-            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_leave_requests' %}active{% endif %}">
-                <span class="sidebar-icon">📄</span> Leave Requests
-            </a>
-            <a href="{% url 'about_teacher' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about_teacher' %}active{% endif %}">
-                <span class="sidebar-icon">👤</span> About Teacher
-            </a>
-        </nav>
-        <a href="{% url 'login' %}" class="logout-btn">🚪 Logout</a>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="top-header">
-            <div class="welcome-text">
-                <h1>Exams & Marks</h1>
-                <p>Record and manage student marks</p>
-            </div>
-            <div style="font-weight: 500; color: var(--text-light);">
-                {{ request.user.first_name }} {{ request.user.last_name }}
-            </div>
-        </div>
-
-        {% if messages %}
+{% block content %}
+{% if messages %}
         <div class="messages">
             {% for message in messages %}
             <div class="message {{ message.tags }}">
@@ -325,7 +13,7 @@
 
         <!-- Selection Card -->
         <div class="card">
-            <h3 class="card-header">Select Class and Subject</h3>
+            <h3 class="card-header">Select Class and Exam</h3>
             <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: flex-end;">
                 <div style="flex: 1;">
                     <label class="form-label">Class</label>
@@ -339,14 +27,12 @@
                     </select>
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label">Subject</label>
-                    <select name="subject_id" class="form-select" required>
-                        <option value="">-- Select Subject --</option>
-                        {% for s in unique_subjects %}
-                            <option value="{{ s.id }}" {% if selected_subject.id == s.id %}selected{% endif %}>
-                                {{ s.name }}
-                            </option>
-                        {% endfor %}
+                    <label class="form-label">Exam Name</label>
+                    <select name="exam_name" class="form-select" required>
+                        <option value="">-- Select Exam --</option>
+                        <option value="Unit Test" {% if selected_exam_name == 'Unit Test' %}selected{% endif %}>Unit Test</option>
+                        <option value="Mid Term" {% if selected_exam_name == 'Mid Term' %}selected{% endif %}>Mid Term</option>
+                        <option value="Final Exam" {% if selected_exam_name == 'Final Exam' %}selected{% endif %}>Final Exam</option>
                     </select>
                 </div>
                 <div>
@@ -354,83 +40,66 @@
                 </div>
             </form>
             
-            {% if selected_classroom and selected_subject %}
+            {% if selected_classroom and selected_exam_name %}
             <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
             
-            <h3 class="card-header" style="border:none; margin-bottom: 1rem;">Manage Exam Marks</h3>
+            <h3 class="card-header" style="border:none; margin-bottom: 1rem;">Select Subject for Marks Entry</h3>
             
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: center; background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border); width: 100%;">
+                <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: flex-end; background: #f9fafb; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; width: 100%;">
                     <input type="hidden" name="classroom_id" value="{{ selected_classroom.id }}">
-                    <input type="hidden" name="subject_id" value="{{ selected_subject.id }}">
+                    <input type="hidden" name="exam_name" value="{{ selected_exam_name }}">
                     
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <label style="font-weight: 500; font-size: 0.9rem;">Existing Exams</label>
-                        <select class="form-input" style="padding: 0.5rem;" onchange="if(this.value){ document.getElementById('exam_date_input').value = this.options[this.selectedIndex].getAttribute('data-date'); document.getElementById('exam_name_input').value = this.options[this.selectedIndex].getAttribute('data-name'); document.getElementById('max_score_input').value = this.options[this.selectedIndex].getAttribute('data-max'); } else { document.getElementById('exam_name_input').value=''; }">
-                            <option value="">-- Create New / Pick --</option>
-                            {% for exam in available_exams %}
-                                <option value="{{ exam.id }}" data-date="{{ exam.date|date:'Y-m-d' }}" data-name="{{ exam.name }}" data-max="{{ exam.max_score }}" {% if selected_exam and selected_exam.id == exam.id %}selected{% endif %}>
-                                    {{ exam.name }}
-                                </option>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+                        <label style="font-weight: 500; font-size: 0.95rem;">Subject</label>
+                        <select name="subject_id" class="form-input" required>
+                            <option value="">-- Select Subject --</option>
+                            {% for s in unique_subjects %}
+                                <option value="{{ s.id }}" {% if selected_subject.id == s.id %}selected{% endif %}>{{ s.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <label style="font-weight: 500; font-size: 0.9rem;">Exam Date</label>
-                        <input type="date" id="exam_date_input" name="exam_date" class="form-input" value="{{ selected_date|date:'Y-m-d' }}" required style="padding: 0.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+                        <label style="font-weight: 500; font-size: 0.95rem;">Exam Date</label>
+                        <input type="date" name="exam_date" class="form-input" value="{{ selected_date|date:'Y-m-d' }}" required>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <label style="font-weight: 500; font-size: 0.9rem;">Exam Name</label>
-                        <select id="exam_name_input" name="exam_name" class="form-input" style="padding: 0.5rem;" required>
-                            <option value="">-- Select Exam --</option>
-                            <option value="Unit Test" {% if selected_exam.name == 'Unit Test' %}selected{% endif %}>Unit Test</option>
-                            <option value="Mid Term" {% if selected_exam.name == 'Mid Term' %}selected{% endif %}>Mid Term</option>
-                            <option value="Final Exam" {% if selected_exam.name == 'Final Exam' %}selected{% endif %}>Final Exam</option>
-                            {% if selected_exam and selected_exam.name != 'Unit Test' and selected_exam.name != 'Mid Term' and selected_exam.name != 'Final Exam' %}
-                                <option value="{{ selected_exam.name }}" selected>{{ selected_exam.name }}</option>
-                            {% endif %}
-                        </select>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <label style="font-weight: 500; font-size: 0.9rem;">Max Score</label>
-                        <input type="number" id="max_score_input" name="max_score" class="form-input" value="{{ selected_exam.max_score|default:100 }}" style="padding: 0.5rem; width: 80px;" required>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-weight: 500; font-size: 0.95rem;">Max Score</label>
+                        <input type="number" name="max_score" class="form-input" value="{{ selected_exam.max_score|default:100 }}" required style="width: 100px;">
                     </div>
                     
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <label style="font-weight: 500; font-size: 0.9rem;">Action</label>
-                        <select name="action_type" class="form-input" style="padding: 0.5rem;" required>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-weight: 500; font-size: 0.95rem;">Action</label>
+                        <select name="action_type" class="form-input" required>
                             <option value="show" {% if action_type == 'show' %}selected{% endif %}>Show Marks</option>
                             <option value="edit" {% if action_type == 'edit' %}selected{% endif %}>Add / Edit Marks</option>
                         </select>
                     </div>
                     
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: auto;">
-                        <button type="submit" class="btn btn-primary" style="background-color: #10b981; padding: 0.6rem 1rem;">Proceed &rarr;</button>
+                    <div>
+                        <button type="submit" class="btn btn-primary">Load Students</button>
                     </div>
                 </form>
             </div>
             {% endif %}
-        </div>
-
-        <!-- Marks Entry Card -->
-        {% if selected_exam %}
-        <div class="card">
-            <h3 class="card-header">
-                Record Marks for {{ selected_classroom }} - {{ selected_exam.name }}
-                <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-light); float: right;">Date: {{ selected_exam.date|date:"d M Y" }} | Max: {{ selected_exam.max_score }}</span>
-            </h3>
             
-            {% if action_type == 'show' and students %}
-            <div style="text-align: right; margin-bottom: 1rem;">
-                <a href="{{ request.get_full_path }}&export_csv=1" class="btn btn-primary" style="background-color: #3b82f6; text-decoration: none;">📥 Export as CSV</a>
+            {% if selected_classroom and selected_subject %}
+                {% if action_type == 'show' and not selected_exam %}
+                    <div class="empty-state" style="margin-top: 2rem; background: #fef2f2; color: #b91c1c; border-color: #fca5a5;">
+                        <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📅</span>
+                        <p>No exam was conducted on this date.</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">Select 'Add / Edit Marks' from the Action dropdown to create it.</p>
+                    </div>
+                {% elif selected_exam %}
+            <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="card-header" style="margin: 0; border: none;">Enter Marks: {{ selected_subject.name }} ({{ selected_exam_name }})</h3>
+                <a href="?classroom_id={{ selected_classroom.id }}&exam_name={{ selected_exam_name }}&subject_id={{ selected_subject.id }}&export_csv=1" class="btn" style="background: #10b981; color: white;">Download CSV</a>
             </div>
-            {% endif %}
             
             {% if students %}
-            <form method="POST" action="{% url 'teacher_exams' %}?classroom_id={{ selected_classroom.id }}&subject_id={{ selected_subject.id }}&exam_id={{ selected_exam.id }}">
+            <form method="POST" action="{% url 'teacher_exams' %}?classroom_id={{ selected_classroom.id }}&exam_name={{ selected_exam_name }}&subject_id={{ selected_subject.id }}&exam_id={{ selected_exam.id }}">
                 {% csrf_token %}
                 <input type="hidden" name="save_marks" value="1">
                 <table>
@@ -484,35 +153,12 @@
             </form>
             {% else %}
             <div class="empty-state">
-                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">s</span>
+                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">🎓</span>
                 <p>No students found in this class.</p>
             </div>
             {% endif %}
+            
+            {% endif %}  <!-- End of elif selected_exam -->
+        {% endif %}      <!-- End of outer selected_classroom and selected_subject -->
         </div>
-        {% endif %}
-
-    </main>
-
-    <script>
-        // Navigate through score inputs using the Enter key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                // If the active element is a score input field
-                if (document.activeElement && document.activeElement.classList.contains('score-obtained-input')) {
-                    e.preventDefault(); // Prevent form submission
-                    
-                    // Get all score inputs as an array
-                    var inputs = Array.from(document.querySelectorAll('.score-obtained-input'));
-                    var index = inputs.indexOf(document.activeElement);
-                    
-                    // Focus the next input if it exists
-                    if (index > -1 && index < inputs.length - 1) {
-                        inputs[index + 1].focus();
-                        inputs[index + 1].select();
-                    }
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+{% endblock %}

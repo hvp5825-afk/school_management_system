@@ -1,0 +1,53 @@
+{% extends "authentication/student_base.html" %}
+
+{% block title %}My Timetable{% endblock %}
+{% block header %}My Class Timetable{% endblock %}
+
+{% block content %}
+<div class="card" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+    <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+        <span class="icon">📅</span> Weekly Schedule (Class {{ request.user.student_profile.classroom.standard }}-{{ request.user.student_profile.classroom.section }})
+    </h3>
+    
+    <div style="overflow-x: auto; margin-top: 1rem;">
+        <table class="table" style="width: 100%; min-width: 800px; border-collapse: collapse; text-align: center;">
+            <thead style="background: #f8fafc;">
+                <tr>
+                    <th style="padding: 1rem; border-bottom: 2px solid #e2e8f0; color: #475569; width: 100px;">Period \ Day</th>
+                    {% for day in days %}
+                        <th style="padding: 1rem; border-bottom: 2px solid #e2e8f0; color: #475569;">{{ day }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in grid %}
+                    {% if row.is_break %}
+                        <tr>
+                            <td colspan="7" style="padding: 1rem; border: 1px solid #e2e8f0; font-weight: 700; color: #ef4444; background: #fee2e2; text-align: center; letter-spacing: 2px;">
+                                LUNCH BREAK ({{ row.time }})
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td style="padding: 1rem; border: 1px solid #e2e8f0; font-weight: 600; color: #334155; background: #f8fafc; white-space: nowrap;">
+                                Lecture {{ row.period }}<br>
+                                <span style="font-size: 0.8rem; color: #64748b; font-weight: 400;">{{ row.time }}</span>
+                            </td>
+                            {% for t in row.days %}
+                                <td style="padding: 0.75rem; border: 1px solid #e2e8f0;">
+                                    {% if t %}
+                                        <div style="font-weight: 600; color: #0f172a;">{{ t.subject.name }}</div>
+                                        <div style="font-size: 0.85em; color: #64748b; margin-top: 5px;">{{ t.teacher.user.first_name }} {{ t.teacher.user.last_name }}</div>
+                                    {% else %}
+                                        <span style="color: #cbd5e1;">--</span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -4,7 +4,7 @@ User = get_user_model()
 from school.models import (
     Teacher, Student, Classroom, Subject, Announcement,
     TeacherAttendance, LeaveRequest, Payroll, AcademicRecord, Attendance,
-    StudentWarning
+    StudentWarning, TeacherWarning
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -122,4 +122,11 @@ class StudentWarningSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentWarning
+        fields = '__all__'
+
+class TeacherWarningSerializer(serializers.ModelSerializer):
+    issued_by_name = serializers.CharField(source='issued_by.get_full_name', read_only=True)
+
+    class Meta:
+        model = TeacherWarning
         fields = '__all__'

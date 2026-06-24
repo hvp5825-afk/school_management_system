@@ -1,0 +1,113 @@
+==== CSS ====
+/* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #a5b4fc;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #e0e7ff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #818cf8;
+        }
+
+        .sidebar-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-icon {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .logout-btn {
+            margin: 1.5rem;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            text-align: center;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+==== HTML ====
+<!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Teacher Panel</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">
+                <span class="sidebar-icon">🏠</span> Dashboard
+            </a>
+            <a href="{% url 'teacher_attendance' %}" class="sidebar-link">
+                <span class="sidebar-icon">📅</span> Attendance
+            </a>
+            <a href="{% url 'teacher_manage_students' %}" class="sidebar-link">
+                <span class="sidebar-icon">👥</span> Manage Students
+            </a>
+            <a href="{% url 'teacher_exams' %}" class="sidebar-link active">
+                <span class="sidebar-icon">📝</span> Exams & Marks
+            </a>
+                        <a href="{% url 'teacher_timetable' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_timetable' %}active{% endif %}">
+                <span class="sidebar-icon">📅</span> Timetable
+            </a>
+            <a href="{% url 'teacher_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_announcements' %}active{% endif %}">
+                <span class="sidebar-icon">📢</span> Announcement {% if unread_announcements_count > 0 %}<span style="background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 15px; height: 15px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_announcements_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_leave_requests' %}active{% endif %}">
+                <span class="sidebar-icon">📄</span> Leave Requests {% if unread_leave_requests_count > 0 %}<span style="background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 15px; height: 15px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_leave_requests_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'about_teacher' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about_teacher' %}active{% endif %}">
+                <span class="sidebar-icon">👤</span> About Teacher
+            </a>
+                    <a href="{% url 'teacher_notifications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_notifications' %}active{% endif %}">
+                <span class="sidebar-icon">🔔</span> Notifications
+            </a>
+        </nav>
+        <a href="{% url 'login' %}" class="logout-btn">🚪 Logout</a>
+    </aside>

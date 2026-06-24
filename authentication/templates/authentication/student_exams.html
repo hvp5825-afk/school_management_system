@@ -1,6 +1,6 @@
 {% extends 'authentication/student_base.html' %}
 
-{% block student_content %}
+{% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <h2 style="margin: 0;">Exams & Marks</h2>
 </div>
@@ -23,10 +23,10 @@
             <tr>
                 <td><strong>{{ mark.exam.subject.name }} - {{ mark.exam.name }}</strong></td>
                 <td>{{ mark.exam.date|date:"F d, Y" }}</td>
-                <td style="font-weight: 700; color: #4f46e5;">{{ mark.score }}</td>
+                <td style="font-weight: 700; color: var(--primary);">{{ mark.score }}</td>
                 <td>{{ mark.max_score }}</td>
                 <td>
-                    <span style="background: #e0e7ff; color: #4338ca; padding: 0.3rem 0.8rem; border-radius: 2rem; font-weight: 600; font-size: 0.85rem;">
+                    <span style="background: #e0e7ff; color: var(--primary-hover); padding: 0.3rem 0.8rem; border-radius: 2rem; font-weight: 600; font-size: 0.85rem;">
                         {% widthratio mark.score mark.max_score 100 %}%
                     </span>
                 </td>

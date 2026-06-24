@@ -1,0 +1,98 @@
+{% extends "admin/admin_base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2><i class="fas fa-school" style="color: var(--primary); margin-right: 10px;"></i> Classrooms</h2>
+    <button onclick="document.getElementById('add-classroom-modal').style.display='flex'" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Classroom
+    </button>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Standard</th>
+                <th>Section</th>
+                <th>Class Teacher</th>
+                <th>Total Students</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for classroom in classrooms %}
+            <tr>
+                <td style="font-weight: 600;">{{ classroom.standard }}</td>
+                <td>{{ classroom.section }}</td>
+                <td>
+                    <form method="POST" style="display: flex; gap: 10px; align-items: center;">
+                        {% csrf_token %}
+                        <input type="hidden" name="classroom_id" value="{{ classroom.id }}">
+                        <select name="teacher_id" class="form-control" style="padding: 0.3rem; border-radius: 4px; border: 1px solid #cbd5e1;">
+                            <option value="">-- No Teacher Assigned --</option>
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}" {% if classroom.class_teacher and classroom.class_teacher.id == teacher.id %}selected{% endif %}>
+                                {{ teacher.user.first_name }} {{ teacher.user.last_name }} ({{ teacher.user.username }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Save</button>
+                    </form>
+                </td>
+                <td>{{ classroom.students.count }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #64748b; padding: 2rem;">
+                    No classrooms found in the system.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Classroom Modal -->
+<div id="add-classroom-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card" style="width: 100%; max-width: 400px; position: relative;">
+        <span onclick="document.getElementById('add-classroom-modal').style.display='none'" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</span>
+        <h2 style="margin-top: 0; color: var(--primary);"><i class="fas fa-plus-circle"></i> Add Classroom</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_classroom">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Standard <span style="color: var(--danger);">*</span></label>
+                <select name="standard" class="form-control" required style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="">Select Standard</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Section <span style="color: var(--danger);">*</span></label>
+                <select name="section" class="form-control" required style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="">Select Section</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="document.getElementById('add-classroom-modal').style.display='none'" class="btn" style="background: #e2e8f0; color: #475569;">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Classroom</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

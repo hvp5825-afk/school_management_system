@@ -20,12 +20,12 @@
         margin-top: 0.2rem;
     }
     .welcome-banner {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
         border-radius: 16px;
         padding: 2.5rem 2rem;
         color: white;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+        box-shadow: 0 10px 25px rgba(2, 132, 199, 0.2);
         position: relative;
         overflow: hidden;
     }
@@ -174,14 +174,14 @@
 </style>
 {% endblock %}
 
-{% block student_content %}
+{% block content %}
 
 {% if warnings %}
     {% for warn in warnings %}
     <div class="warning-banner">
         <div class="warning-icon"><i class="fas fa-exclamation-triangle"></i></div>
         <div>
-            <h4 style="margin: 0 0 0.25rem 0; font-size: 1.1rem;">Official Warning</h4>
+            <h4 style="margin: 0 0 0.25rem 0; font-size: 1.1rem;">Official Notice</h4>
             <p style="margin: 0; opacity: 0.9;">{{ warn.message }}</p>
             <div style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.8;">
                 Issued on {{ warn.date_issued|date:"M d, Y" }} by {{ warn.issued_by.get_full_name|default:"Admin" }}
@@ -208,7 +208,7 @@
     </div>
     
     <div class="stat-card">
-        <div class="stat-icon icon-green">
+        <div class="stat-icon icon-blue">
             <i class="fas fa-user-check"></i>
         </div>
         <div class="stat-info">
@@ -244,8 +244,8 @@
         {% endfor %}
         </div>
         <a href="{% url 'student_announcements' %}" class="view-all-btn">
-            View all announcements <span>&rarr;</span>
-        </a>
+            View all announcements <span>&rarr;</span> {% if unread_announcements_count > 0 %}<span style="background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 15px; height: 15px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_announcements_count }}</span>{% endif %}
+            </a>
     {% else %}
         <div class="card" style="text-align: center; padding: 3rem; background: transparent; border: 2px dashed #cbd5e1; box-shadow: none;">
             <p style="color: #64748b; font-size: 1.1rem; margin: 0;">No recent announcements from your teachers.</p>

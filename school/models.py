@@ -98,9 +98,10 @@ class Timetable(models.Model):
         ('Wednesday', 'Wednesday'),
         ('Thursday', 'Thursday'),
         ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
     )
     
-    PERIOD_CHOICES = [(i, str(i)) for i in range(1, 7)]
+    PERIOD_CHOICES = [(i, str(i)) for i in range(1, 9)]
 
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='timetable')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='timetable')
@@ -161,7 +162,7 @@ class Exam(models.Model):
     max_score = models.IntegerField(default=100)
 
     class Meta:
-        unique_together = ('name', 'classroom', 'subject')
+        unique_together = ('name', 'classroom', 'subject', 'date')
 
     def __str__(self):
         return f"{self.name} - {self.classroom} ({self.subject})"
@@ -266,3 +267,29 @@ class StudentWarning(models.Model):
 
     def __str__(self):
         return f"Warning for {self.student.user.username} on {self.date_issued.date()}"
+
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=255)
+    link = models.CharField(max_length=255, blank=True, null=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message[:20]}"
+
+class TeacherWarning(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='warnings')
+    message = models.TextField()
+    issued_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    date_issued = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-date_issued']
+
+    def __str__(self):
+        return f'Warning for {self.teacher.user.username} - {self.date_issued.strftime("%Y-%m-%d")}'

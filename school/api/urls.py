@@ -5,7 +5,7 @@ from .views import (
     TeacherViewSet, StudentViewSet, ClassroomViewSet, SubjectViewSet,
     AnnouncementViewSet, TeacherAttendanceViewSet, LeaveRequestViewSet,
     PayrollViewSet, AcademicRecordViewSet, StudentAttendanceViewSet,
-    StudentWarningViewSet
+    StudentWarningViewSet, TeacherWarningViewSet
 )
 
 router = DefaultRouter()
@@ -20,6 +20,7 @@ router.register(r'payroll', PayrollViewSet)
 router.register(r'academic-records', AcademicRecordViewSet)
 router.register(r'student-attendance', StudentAttendanceViewSet)
 router.register(r'student-warnings', StudentWarningViewSet)
+router.register(r'teacher-warnings', TeacherWarningViewSet)
 
 urlpatterns = [
     path('dashboard/stats/', AdminDashboardStatsAPIView.as_view(), name='api_admin_dashboard_stats'),
