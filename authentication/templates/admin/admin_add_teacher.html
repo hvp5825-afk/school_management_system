@@ -1,0 +1,59 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0; color: #0f172a;">Add New Teacher</h1>
+        <p style="color: #64748b; margin-top: 0.5rem;">Create a new teacher profile, assign a subject, and set payroll details.</p>
+    </div>
+    <button class="btn" style="background: #e2e8f0; color: #475569;" onclick="window.location.href='/auth/dashboard/admin/teachers/'">
+        <i class="fas fa-arrow-left"></i> Back to Directory
+    </button>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <form method="POST" action="{% url 'admin_add_teacher' %}">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">First Name</label>
+                <input type="text" name="first_name" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Last Name</label>
+                <input type="text" name="last_name" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Email Address</label>
+            <input type="email" name="email" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Qualification</label>
+            <input type="text" name="qualification" placeholder="e.g. M.Sc. Mathematics, B.Ed." required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Specialty Subject</label>
+                <select name="subject_id" style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                    <option value="">-- No Specific Subject --</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }} ({{ s.subject_code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Base Salary (₹)</label>
+                <input type="number" step="0.01" name="base_salary" value="0.00" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+            <i class="fas fa-user-plus"></i> Create Teacher Account
+        </button>
+    </form>
+</div>
+{% endblock %}

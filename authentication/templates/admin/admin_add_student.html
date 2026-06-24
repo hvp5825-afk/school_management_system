@@ -1,0 +1,47 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="margin: 0; color: #0f172a;">Add New Student</h1>
+        <p style="color: #64748b; margin-top: 0.5rem;">Create a new student profile and generate login credentials.</p>
+    </div>
+    <button class="btn" style="background: #e2e8f0; color: #475569;" onclick="window.location.href='/auth/dashboard/admin/students/'">
+        <i class="fas fa-arrow-left"></i> Back to Directory
+    </button>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <form method="POST" action="{% url 'admin_add_student' %}">
+        {% csrf_token %}
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">First Name</label>
+            <input type="text" name="first_name" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Last Name</label>
+            <input type="text" name="last_name" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Email Address</label>
+            <input type="email" name="email" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b;">Assign to Classroom</label>
+            <select name="classroom_id" required style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                <option value="">-- Select Classroom --</option>
+                {% for c in classrooms %}
+                <option value="{{ c.id }}">{{ c.standard }} - {{ c.section }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+            <i class="fas fa-user-plus"></i> Create Student Account
+        </button>
+    </form>
+</div>
+{% endblock %}
