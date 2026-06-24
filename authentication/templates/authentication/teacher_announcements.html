@@ -81,8 +81,24 @@
         </div>
     </div>
 
-    
-
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleForm() {
+        const form = document.getElementById('broadcast-form');
+        const btn = document.getElementById('toggle-btn');
+        if (form.style.display === 'none' || form.style.display === '') {
+            form.style.display = 'block';
+            btn.innerHTML = 'Cancel';
+            btn.style.background = '#ef4444';
+        } else {
+            form.style.display = 'none';
+            btn.innerHTML = '+ Add Announcement';
+            btn.style.background = '';
+        }
+    }
+</script>
 {% endblock %}

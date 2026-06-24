@@ -8,23 +8,7 @@
     </div>
 </div>
 
-<div class="card" style="margin-bottom: 2rem; background: #eff6ff; border-color: #bfdbfe;">
-    <h3 style="margin-top: 0; color: #1e3a8a;">Create New Announcement</h3>
-    <form id="announcement-form" style="display: flex; flex-direction: column; gap: 1rem;">
-        {% csrf_token %}
-        <input type="text" id="ann-title" placeholder="Announcement Title" required style="padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1;">
-        <select id="ann-category" style="padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1;">
-            <option value="General">General</option>
-            <option value="Exam">Exam</option>
-            <option value="Event">Event</option>
-            <option value="Holiday">Holiday</option>
-        </select>
-        <textarea id="ann-content" placeholder="Write your notice here..." rows="4" required style="padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; resize: vertical;"></textarea>
-        <!-- For API creation via JS, we'll assign to the first teacher ID or modify API to accept admin user -->
-        <!-- Since existing model requires a teacher, we might need a workaround if Admin isn't a teacher. But for now we just show UI -->
-        <button type="submit" class="btn btn-primary" style="align-self: flex-start;">Broadcast Notice</button>
-    </form>
-</div>
+<!-- Admin currently only views announcements. Posting requires a Teacher profile. -->
 
 <div class="card">
     <h2 style="margin-top: 0;">Recent Announcements</h2>
@@ -64,12 +48,5 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadAnnouncements);
-    
-    // Note: To fully implement POST via DRF, CSRF headers and proper payload need to be set.
-    // For now, this serves as the layout and GET interaction as specified.
-    document.getElementById('announcement-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('API POST implementation pending matching Admin-Teacher profile binding.');
-    });
 </script>
 {% endblock %}
