@@ -145,3 +145,6 @@ AUTH_USER_MODEL = 'authentication.User'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'login'
+
+# Custom CSRF Failure View
+CSRF_FAILURE_VIEW = 'authentication.views.custom_csrf_failure'

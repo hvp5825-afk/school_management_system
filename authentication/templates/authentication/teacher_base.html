@@ -479,6 +479,109 @@
             position: relative;
             overflow: hidden;
         }
+
+        /* Table Styles */
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .table th {
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .table th:first-child {
+            border-top-left-radius: 8px;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .table th:last-child {
+            border-top-right-radius: 8px;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            vertical-align: middle;
+        }
+        
+        .table td:first-child {
+            border-left: 1px solid #e2e8f0;
+        }
+        
+        .table td:last-child {
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .table tbody tr:hover {
+            background: #f1f5f9;
+        }
+
+        /* Forms */
+        .form-control {
+            border: 1px solid #cbd5e1;
+            padding: 0.8rem;
+            border-radius: 8px;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            color: #334155;
+            background: white;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1e293b;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .search-bar-container {
+            display: flex;
+            gap: 1.5rem;
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            align-items: flex-end;
+            border: 1px solid var(--border);
+        }
+
         .btn:hover {
             transform: translateY(-3px) !important;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
@@ -500,31 +603,31 @@
         </div>
         <nav class="sidebar-nav">
             <a href="{% url 'teacher_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}">
-                <span class="sidebar-icon">🏠</span> Dashboard
+                <span class="sidebar-icon"><i class="fas fa-chart-pie"></i></span> Dashboard
             </a>
             <a href="{% url 'teacher_attendance' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_attendance' %}active{% endif %}">
-                <span class="sidebar-icon">📅</span> Attendance
+                <span class="sidebar-icon"><i class="fas fa-calendar-check"></i></span> Attendance
             </a>
             <a href="{% url 'teacher_manage_students' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_manage_students' %}active{% endif %}">
-                <span class="sidebar-icon">👥</span> Manage Students
+                <span class="sidebar-icon"><i class="fas fa-users"></i></span> Manage Students
             </a>
             <a href="{% url 'teacher_exams' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_exams' %}active{% endif %}">
-                <span class="sidebar-icon">📝</span> Exams & Marks
+                <span class="sidebar-icon"><i class="fas fa-edit"></i></span> Exams & Marks
             </a>
             <a href="{% url 'teacher_timetable' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_timetable' %}active{% endif %}">
-                <span class="sidebar-icon">📅</span> Timetable
+                <span class="sidebar-icon"><i class="fas fa-clock"></i></span> Timetable
             </a>
             <a href="{% url 'teacher_announcements' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_announcements' %}active{% endif %}">
-                <span class="sidebar-icon">📢</span> Announcement {% if unread_announcements_count > 0 %}<span style="background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_announcements_count }}</span>{% endif %}
+                <span class="sidebar-icon"><i class="fas fa-bullhorn"></i></span> Announcement {% if unread_announcements_count > 0 %}<span style="background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_announcements_count }}</span>{% endif %}
             </a>
             <a href="{% url 'teacher_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_leave_requests' %}active{% endif %}">
-                <span class="sidebar-icon">📄</span> Leave Requests {% if unread_leave_requests_count > 0 %}<span style="background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_leave_requests_count }}</span>{% endif %}
+                <span class="sidebar-icon"><i class="fas fa-envelope-open-text"></i></span> Leave Requests {% if unread_leave_requests_count > 0 %}<span style="background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_leave_requests_count }}</span>{% endif %}
             </a>
             <a href="{% url 'about_teacher' %}" class="sidebar-link {% if request.resolver_match.url_name == 'about_teacher' %}active{% endif %}">
-                <span class="sidebar-icon">👤</span> About Teacher
+                <span class="sidebar-icon"><i class="fas fa-user-tie"></i></span> About Teacher
             </a>
             <a href="{% url 'teacher_notifications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'teacher_notifications' %}active{% endif %}">
-                <span class="sidebar-icon">🔔</span> Notifications
+                <span class="sidebar-icon"><i class="fas fa-bell"></i></span> Notifications
             </a>
         </nav>
         <div style="border-top: 1px solid rgba(255,255,255,0.1);">

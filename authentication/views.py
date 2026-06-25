@@ -1054,3 +1054,13 @@ def admin_add_teacher(request):
     subjects = Subject.objects.all().order_by('name')
     return render(request, 'admin/admin_add_teacher.html', {'subjects': subjects})
 
+def custom_csrf_failure(request, reason=""):
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    
+    messages.error(request, "Aapka session expire ho gaya tha ya security token invalid tha. Kripya apna form dubara submit karein.")
+    # Redirect back to the page the user came from
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        return redirect(referer)
+    return redirect('login')
