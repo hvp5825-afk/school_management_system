@@ -464,6 +464,30 @@
             gap: 1.5rem;
         }
 
+        /* Enhanced Hover Effects for All Cards & Buttons */
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .card:hover {
+            transform: translateY(-5px) !important;
+            box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            border-color: rgba(2, 132, 199, 0.3) !important;
+        }
+        
+        .btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+            filter: brightness(1.1) !important;
+        }
+        .btn:active {
+            transform: translateY(1px) !important;
+        }
+
         {% block extra_css %}{% endblock %}
     </style>
 </head>
@@ -494,7 +518,7 @@
                 <span class="sidebar-icon"><i class="fas fa-bullhorn"></i></span> Announcements
             </a>
             <a href="{% url 'admin_leave_requests' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_leave_requests' %}active{% endif %}">
-                <span class="sidebar-icon"><i class="fas fa-calendar-check"></i></span> Leave Requests
+                <span class="sidebar-icon"><i class="fas fa-calendar-check"></i></span> Leave Requests {% if unread_leave_requests_count > 0 %}<span style="background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; font-weight: bold; min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;">{{ unread_leave_requests_count }}</span>{% endif %}
             </a>
         </nav>
         <div style="border-top: 1px solid rgba(255,255,255,0.1);">

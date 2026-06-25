@@ -1,10 +1,12 @@
 {% extends 'admin/admin_base.html' %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <div>
-        <h1 style="margin: 0; color: #0f172a;">Student Details</h1>
-        <p style="color: #64748b; margin-top: 0.5rem;"><a href="{% url 'admin_students' %}" style="color: var(--primary); text-decoration: none;">&larr; Back to Directory</a></p>
+<div class="container">
+    <a href="javascript:history.back()" class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 1.5rem; display: inline-flex; align-items: center; gap: 0.5rem;"><i class="fas fa-arrow-left"></i> Back</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="margin: 0; color: #0f172a;">Student Details</h1>
+        </div>
     </div>
 </div>
 
@@ -31,7 +33,9 @@
             </div>
             <div style="grid-column: span 2;">
                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Classroom</label>
-                <input type="text" id="s-class" readonly disabled style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #f1f5f9;">
+                <select id="s-class" class="form-input" style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
+                    <option value="">Unassigned</option>
+                </select>
             </div>
         </div>
         
@@ -201,15 +205,33 @@
     let userId = null;
 
     document.addEventListener('DOMContentLoaded', function() {
-        fetch(`/api/students/${studentId}/`)
+        // Fetch classrooms first to populate the dropdown
+        fetch('/api/classrooms/')
             .then(res => res.json())
-            .then(data => {
-                userId = data.user.id;
-                document.getElementById('student-name').textContent = data.user.first_name + ' ' + data.user.last_name;
-                document.getElementById('student-id').textContent = 'Enrollment ID: ' + data.student_id;
-                document.getElementById('s-fname').value = data.user.first_name;
-                document.getElementById('s-lname').value = data.user.last_name;
-                document.getElementById('s-class').value = data.classroom ? (data.classroom.standard + ' - ' + data.classroom.section) : 'Unassigned';
+            .then(classrooms => {
+                const classSelect = document.getElementById('s-class');
+                classrooms.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.standard + ' - ' + c.section;
+                    classSelect.appendChild(opt);
+                });
+            })
+            .then(() => {
+                // Fetch student data
+                fetch(`/api/students/${studentId}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        userId = data.user.id;
+                        document.getElementById('student-name').textContent = data.user.first_name + ' ' + data.user.last_name;
+                        document.getElementById('student-id').textContent = 'Enrollment ID: ' + data.student_id;
+                        document.getElementById('s-fname').value = data.user.first_name;
+                        document.getElementById('s-lname').value = data.user.last_name;
+                        if(data.classroom) {
+                            document.getElementById('s-class').value = data.classroom.id;
+                        }
+                    })
+                    .catch(err => console.error(err));
             })
             .catch(err => console.error(err));
     });
@@ -217,15 +239,34 @@
     document.getElementById('student-edit-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Since first_name and last_name belong to User model, not Student model,
-        // we need a custom DRF update logic or we just display them and not update user through Student serializer directly
-        // DRF ModelSerializer with nested read_only=True user won't update user fields via PATCH on student.
-        // For simplicity, we show a message.
+        const payload = {
+            classroom_id: document.getElementById('s-class').value || null
+        };
         
-        const msg = document.getElementById('status-msg');
-        msg.textContent = 'User fields update via DRF requires nested serializers setup. Saved locally.';
-        msg.style.color = 'var(--warning)';
-        setTimeout(() => msg.textContent='', 3000);
+        fetch(`/api/students/${studentId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if(res.ok) {
+                const msg = document.getElementById('status-msg');
+                msg.textContent = 'Student transferred to the new classroom successfully!';
+                msg.style.color = 'var(--success)';
+                setTimeout(() => msg.textContent='', 4000);
+            } else {
+                throw new Error('Failed to update classroom');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            const msg = document.getElementById('status-msg');
+            msg.textContent = 'Error updating classroom.';
+            msg.style.color = 'var(--danger)';
+        });
     });
 </script>
 {% endblock %}

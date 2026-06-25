@@ -809,14 +809,38 @@ def admin_students(request):
 def admin_announcements(request):
     if not request.user.is_superuser:
         return redirect('login')
-    return render(request, 'admin/admin_announcements.html')
+
+    from school.models import Announcement
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        category = request.POST.get('category')
+        image = request.FILES.get('image')
+        if title and content:
+            Announcement.objects.create(
+                teacher=None, # Admin posting
+                title=title,
+                content=content,
+                category=category,
+                image=image
+            )
+            messages.success(request, 'Announcement posted successfully!')
+            return redirect('admin_announcements')
+            
+    announcements = Announcement.objects.all().order_by('-date_posted')
+    return render(request, 'admin/admin_announcements.html', {'announcements': announcements})
 
 @login_required
 def admin_leave_requests(request):
     if not request.user.is_superuser:
         return redirect('login')
     
-    from school.models import LeaveRequest
+    from school.models import LeaveRequest, Notification
+    
+    # Mark leave request notifications as read
+    Notification.objects.filter(user=request.user, is_read=False, link__icontains='leave-requests').update(is_read=True)
+    
     leave_requests = LeaveRequest.objects.all().select_related('user').order_by('-date_applied')
     return render(request, 'admin/admin_leave_requests.html', {'leave_requests': leave_requests})
 

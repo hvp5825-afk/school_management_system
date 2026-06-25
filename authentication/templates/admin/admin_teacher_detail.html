@@ -1,12 +1,13 @@
 {% extends 'admin/admin_base.html' %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <div>
-        <h1 style="margin: 0; color: #0f172a;">Teacher Details</h1>
-        <p style="color: #64748b; margin-top: 0.5rem;"><a href="{% url 'admin_teachers' %}" style="color: var(--primary); text-decoration: none;">&larr; Back to Directory</a></p>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="margin: 0; color: #0f172a;">Teacher Details</h1>
+        </div>
+        <a href="javascript:history.back()" class="btn" style="background: #e2e8f0; color: #475569;"><i class="fas fa-arrow-left"></i> Back</a>
     </div>
-</div>
 
 <div class="card" style="max-width: 800px; margin: 0 auto;">
     <h2 id="teacher-name" style="margin-top: 0; color: var(--primary); text-align: center;">Loading...</h2>
@@ -18,6 +19,10 @@
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Qualification</label>
                 <input type="text" id="t-qual" class="form-input" style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Teacher ID</label>
+                <input type="text" id="t-teacher-id" class="form-input" readonly disabled style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #f1f5f9;">
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Specialty Subject</label>
@@ -131,6 +136,7 @@
             .then(data => {
                 document.getElementById('teacher-name').textContent = data.user.first_name + ' ' + data.user.last_name;
                 document.getElementById('teacher-id').textContent = 'ID: ' + data.teacher_id;
+                document.getElementById('t-teacher-id').value = data.teacher_id || 'N/A';
                 document.getElementById('t-qual').value = data.qualification || '';
                 document.getElementById('t-subject').value = data.specialty_subject ? data.specialty_subject.name : 'N/A';
                 document.getElementById('t-base').value = data.base_salary;

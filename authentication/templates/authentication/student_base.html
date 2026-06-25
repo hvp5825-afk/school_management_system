@@ -464,6 +464,30 @@
             gap: 1.5rem;
         }
 
+        /* Enhanced Hover Effects for All Cards & Buttons */
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .card:hover {
+            transform: translateY(-5px) !important;
+            box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            border-color: rgba(2, 132, 199, 0.3) !important;
+        }
+        
+        .btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+            filter: brightness(1.1) !important;
+        }
+        .btn:active {
+            transform: translateY(1px) !important;
+        }
+
         {% block extra_css %}{% endblock %}
     </style>
 </head>

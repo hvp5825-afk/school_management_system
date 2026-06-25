@@ -33,11 +33,14 @@ class TeacherSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     classroom = ClassroomSerializer(read_only=True)
+    classroom_id = serializers.PrimaryKeyRelatedField(
+        queryset=Classroom.objects.all(), source='classroom', write_only=True, required=False, allow_null=True
+    )
     performance_label = serializers.SerializerMethodField()
 
     class Meta:
         model = Student
-        fields = ['id', 'user', 'classroom', 'student_id', 'performance_label']
+        fields = ['id', 'user', 'classroom', 'classroom_id', 'student_id', 'performance_label']
 
     def get_performance_label(self, obj):
         from school.models import Attendance, Mark

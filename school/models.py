@@ -190,7 +190,7 @@ class Announcement(models.Model):
     content = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='General')
     image = models.ImageField(upload_to='announcements/', null=True, blank=True)
-    teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE, related_name='announcements')
+    teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE, related_name='announcements', null=True, blank=True)
     date_posted = models.DateTimeField(auto_now_add=True)
 
     class Meta:

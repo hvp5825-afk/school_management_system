@@ -1,164 +1,282 @@
 {% extends 'authentication/teacher_base.html' %}
 
+{% block extra_css %}
+<style>
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        outline: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .card-header-styled {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0f172a;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 0.75rem;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 1.5rem;
+        align-items: flex-end;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        align-items: flex-end;
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .score-input {
+        width: 100%;
+        max-width: 120px;
+        padding: 0.5rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .score-input:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.1);
+    }
+
+    .table th {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 2px dashed #cbd5e1;
+    }
+
+    @media (max-width: 768px) {
+        .filter-grid, .details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-{% if messages %}
-        <div class="messages">
+<div class="container">
+    {% if messages %}
+        <div style="margin-bottom: 1.5rem;">
             {% for message in messages %}
-            <div class="message {{ message.tags }}">
-                {{ message }}
+            <div style="padding: 1rem; border-radius: 8px; font-weight: 500; margin-bottom: 0.5rem;
+                {% if message.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #f87171;
+                {% else %}background: #d1fae5; color: #065f46; border: 1px solid #10b981;{% endif %}">
+                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i> {{ message }}
             </div>
             {% endfor %}
         </div>
-        {% endif %}
+    {% endif %}
 
-        <!-- Selection Card -->
-        <div class="card">
-            <h3 class="card-header">Select Class and Exam</h3>
-            <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: flex-end;">
-                <div style="flex: 1;">
-                    <label class="form-label">Class</label>
-                    <select name="classroom_id" class="form-select" required>
-                        <option value="">-- Select Class --</option>
-                        {% for c in unique_classrooms %}
-                            <option value="{{ c.id }}" {% if selected_classroom.id == c.id %}selected{% endif %}>
-                                {{ c }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div style="flex: 1;">
-                    <label class="form-label">Exam Name</label>
-                    <select name="exam_name" class="form-select" required>
-                        <option value="">-- Select Exam --</option>
-                        <option value="Unit Test" {% if selected_exam_name == 'Unit Test' %}selected{% endif %}>Unit Test</option>
-                        <option value="Mid Term" {% if selected_exam_name == 'Mid Term' %}selected{% endif %}>Mid Term</option>
-                        <option value="Final Exam" {% if selected_exam_name == 'Final Exam' %}selected{% endif %}>Final Exam</option>
-                    </select>
-                </div>
-                <div>
-                    <button type="submit" class="btn btn-primary">Select</button>
-                </div>
-            </form>
-            
-            {% if selected_classroom and selected_exam_name %}
-            <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
-            
-            <h3 class="card-header" style="border:none; margin-bottom: 1rem;">Select Subject for Marks Entry</h3>
-            
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <form method="GET" action="{% url 'teacher_exams' %}" style="display: flex; gap: 1rem; align-items: flex-end; background: #f9fafb; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; width: 100%;">
-                    <input type="hidden" name="classroom_id" value="{{ selected_classroom.id }}">
-                    <input type="hidden" name="exam_name" value="{{ selected_exam_name }}">
-                    
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
-                        <label style="font-weight: 500; font-size: 0.95rem;">Subject</label>
-                        <select name="subject_id" class="form-input" required>
-                            <option value="">-- Select Subject --</option>
-                            {% for s in unique_subjects %}
-                                <option value="{{ s.id }}" {% if selected_subject.id == s.id %}selected{% endif %}>{{ s.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="margin: 0; color: #0f172a;">Manage Exams & Marks</h2>
+            <p style="color: #64748b; margin-top: 0.5rem;">Create exams and record student marks efficiently.</p>
+        </div>
+    </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
-                        <label style="font-weight: 500; font-size: 0.95rem;">Exam Date</label>
-                        <input type="date" name="exam_date" class="form-input" value="{{ selected_date|date:'Y-m-d' }}" required>
-                    </div>
+    <!-- Step 1: Selection Card -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 class="card-header-styled">1. Select Class & Exam Type</h3>
+        <form method="GET" action="{% url 'teacher_exams' %}" class="filter-grid">
+            <div>
+                <label class="form-label">Classroom</label>
+                <select name="classroom_id" class="form-control" required>
+                    <option value="">-- Select Class --</option>
+                    {% for c in unique_classrooms %}
+                        <option value="{{ c.id }}" {% if selected_classroom.id == c.id %}selected{% endif %}>
+                            {{ c }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Exam Name</label>
+                <select name="exam_name" class="form-control" required>
+                    <option value="">-- Select Exam Type --</option>
+                    <option value="Unit Test" {% if selected_exam_name == 'Unit Test' %}selected{% endif %}>Unit Test</option>
+                    <option value="Mid Term" {% if selected_exam_name == 'Mid Term' %}selected{% endif %}>Mid Term</option>
+                    <option value="Final Exam" {% if selected_exam_name == 'Final Exam' %}selected{% endif %}>Final Exam</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; width: 100%;"><i class="fas fa-search"></i> Select</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Step 2: Exam Details Card -->
+    {% if selected_classroom and selected_exam_name %}
+    <div class="card" style="margin-bottom: 2rem; border-top: 4px solid var(--primary);">
+        <h3 class="card-header-styled">2. Exam Details & Action</h3>
+        <form method="GET" action="{% url 'teacher_exams' %}" class="details-grid">
+            <input type="hidden" name="classroom_id" value="{{ selected_classroom.id }}">
+            <input type="hidden" name="exam_name" value="{{ selected_exam_name }}">
+            
+            <div>
+                <label class="form-label">Subject</label>
+                <select name="subject_id" class="form-control" required>
+                    <option value="">-- Select Subject --</option>
+                    {% for s in unique_subjects %}
+                        <option value="{{ s.id }}" {% if selected_subject.id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-weight: 500; font-size: 0.95rem;">Max Score</label>
-                        <input type="number" name="max_score" class="form-input" value="{{ selected_exam.max_score|default:100 }}" required style="width: 100px;">
-                    </div>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="font-weight: 500; font-size: 0.95rem;">Action</label>
-                        <select name="action_type" class="form-input" required>
-                            <option value="show" {% if action_type == 'show' %}selected{% endif %}>Show Marks</option>
-                            <option value="edit" {% if action_type == 'edit' %}selected{% endif %}>Add / Edit Marks</option>
-                        </select>
-                    </div>
-                    
+            <div>
+                <label class="form-label">Exam Date</label>
+                <input type="date" name="exam_date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}" required>
+            </div>
+
+            <div>
+                <label class="form-label">Max Score</label>
+                <input type="number" name="max_score" class="form-control" value="{{ selected_exam.max_score|default:100 }}" required>
+            </div>
+            
+            <div>
+                <label class="form-label">Action</label>
+                <select name="action_type" class="form-control" required>
+                    <option value="show" {% if action_type == 'show' %}selected{% endif %}>View Marks</option>
+                    <option value="edit" {% if action_type == 'edit' %}selected{% endif %}>Add / Edit Marks</option>
+                </select>
+            </div>
+            
+            <div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem 1rem;"><i class="fas fa-users"></i> Load Students</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+    
+    <!-- Step 3: Marks Entry / View -->
+    {% if selected_classroom and selected_subject %}
+        {% if action_type == 'show' and not selected_exam %}
+            <div class="card empty-state" style="border-top: 4px solid #ef4444; background: #fef2f2;">
+                <span style="font-size: 3rem; display: block; margin-bottom: 1rem; color: #ef4444;"><i class="far fa-calendar-times"></i></span>
+                <h3 style="color: #991b1b; margin-bottom: 0.5rem;">No Exam Record Found</h3>
+                <p style="color: #b91c1c; opacity: 0.9;">There is no {{ selected_exam_name }} recorded for {{ selected_subject.name }} on {{ selected_date|date:'Y-m-d' }}.</p>
+                <p style="font-size: 0.9rem; margin-top: 1rem; color: #b91c1c;">Select <strong>"Add / Edit Marks"</strong> from the Action dropdown above to create it.</p>
+            </div>
+        {% elif selected_exam or action_type == 'edit' %}
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <button type="submit" class="btn btn-primary">Load Students</button>
+                        <h3 class="card-header-styled" style="margin: 0; border: none; padding: 0;">{% if action_type == 'edit' %}Enter Marks{% else %}Marks Record{% endif %}</h3>
+                        <p style="color: #64748b; margin-top: 0.25rem;">{{ selected_subject.name }} - {{ selected_exam_name }}</p>
                     </div>
+                    {% if selected_exam %}
+                        <a href="?classroom_id={{ selected_classroom.id }}&exam_name={{ selected_exam_name }}&subject_id={{ selected_subject.id }}&export_csv=1" class="btn" style="background: #10b981; color: white;"><i class="fas fa-file-csv"></i> Download CSV</a>
+                    {% endif %}
+                </div>
+                
+                {% if students %}
+                <form method="POST" action="{% url 'teacher_exams' %}?classroom_id={{ selected_classroom.id }}&exam_name={{ selected_exam_name }}&subject_id={{ selected_subject.id }}{% if selected_exam %}&exam_id={{ selected_exam.id }}{% endif %}">
+                    {% csrf_token %}
+                    <!-- We pass exam details again for the POST request in case we are creating a new exam -->
+                    <input type="hidden" name="save_marks" value="1">
+                    <input type="hidden" name="exam_date" value="{{ selected_date|date:'Y-m-d' }}">
+                    <input type="hidden" name="max_score" value="{{ request.GET.max_score|default:100 }}">
+
+                    <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <table class="table" style="margin: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Student Name</th>
+                                    <th style="text-align: center;">Score Obtained</th>
+                                    <th style="text-align: center;">Max Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td style="font-weight: 600; color: #475569;">{{ student.student_id }}</td>
+                                    <td style="font-weight: 500;">{{ student.user.first_name }} {{ student.user.last_name }}</td>
+                                    <td style="text-align: center;">
+                                        {% if action_type == 'edit' %}
+                                            <input type="number" step="0.01" min="0" max="{{ student.existing_mark.max_score|default:request.GET.max_score|default:100 }}" 
+                                                name="score_{{ student.id }}" class="score-input" 
+                                                value="{{ student.existing_mark.score|default:'' }}" placeholder="Score" required>
+                                        {% else %}
+                                            {% if student.existing_mark %}
+                                                <span style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">{{ student.existing_mark.score }}</span>
+                                            {% else %}
+                                                <span style="color: #94a3b8; font-style: italic;">Not recorded</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align: center;">
+                                        {% if action_type == 'edit' %}
+                                            <input type="number" name="max_score_{{ student.id }}" class="score-input" style="background: #f8fafc; border-color: transparent;" readonly
+                                                value="{{ student.existing_mark.max_score|default:request.GET.max_score|default:100 }}">
+                                        {% else %}
+                                            {% if student.existing_mark %}
+                                                {{ student.existing_mark.max_score }}
+                                            {% else %}
+                                                {{ request.GET.max_score|default:100 }}
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if action_type == 'edit' %}
+                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem; font-size: 1.05rem; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.4);"><i class="fas fa-save"></i> Save All Marks</button>
+                    </div>
+                    {% endif %}
                 </form>
-            </div>
-            {% endif %}
-            
-            {% if selected_classroom and selected_subject %}
-                {% if action_type == 'show' and not selected_exam %}
-                    <div class="empty-state" style="margin-top: 2rem; background: #fef2f2; color: #b91c1c; border-color: #fca5a5;">
-                        <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📅</span>
-                        <p>No exam was conducted on this date.</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">Select 'Add / Edit Marks' from the Action dropdown to create it.</p>
-                    </div>
-                {% elif selected_exam %}
-            <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="card-header" style="margin: 0; border: none;">Enter Marks: {{ selected_subject.name }} ({{ selected_exam_name }})</h3>
-                <a href="?classroom_id={{ selected_classroom.id }}&exam_name={{ selected_exam_name }}&subject_id={{ selected_subject.id }}&export_csv=1" class="btn" style="background: #10b981; color: white;">Download CSV</a>
-            </div>
-            
-            {% if students %}
-            <form method="POST" action="{% url 'teacher_exams' %}?classroom_id={{ selected_classroom.id }}&exam_name={{ selected_exam_name }}&subject_id={{ selected_subject.id }}&exam_id={{ selected_exam.id }}">
-                {% csrf_token %}
-                <input type="hidden" name="save_marks" value="1">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Student ID</th>
-                            <th>Student Name</th>
-                            <th>Score Obtained</th>
-                            <th>Max Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in students %}
-                        <tr>
-                            <td><strong>{{ student.student_id }}</strong></td>
-                            <td>{{ student.user.first_name }} {{ student.user.last_name }}</td>
-                            <td>
-                                {% if action_type == 'edit' %}
-                                    <input type="number" step="0.01" min="0" max="{{ student.existing_mark.max_score|default:selected_exam.max_score }}" 
-                                           name="score_{{ student.id }}" class="score-input score-obtained-input" 
-                                           value="{{ student.existing_mark.score|default:'' }}" placeholder="e.g. 85">
-                                {% else %}
-                                    {% if student.existing_mark %}
-                                        <strong>{{ student.existing_mark.score }}</strong>
-                                    {% else %}
-                                        <span style="color: #9ca3af;">Not recorded</span>
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if action_type == 'edit' %}
-                                    <input type="number" name="max_score_{{ student.id }}" class="score-input" 
-                                           value="{{ student.existing_mark.max_score|default:selected_exam.max_score }}">
-                                {% else %}
-                                    {% if student.existing_mark %}
-                                        {{ student.existing_mark.max_score }}
-                                    {% else %}
-                                        {{ selected_exam.max_score }}
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% if action_type == 'edit' %}
-                <div style="margin-top: 2rem; text-align: right;">
-                    <button type="submit" class="btn btn-primary">Save Marks</button>
+                {% else %}
+                <div class="empty-state">
+                    <span style="font-size: 3rem; display: block; margin-bottom: 1rem; color: #94a3b8;"><i class="fas fa-user-graduate"></i></span>
+                    <h3 style="color: #475569;">No Students Found</h3>
+                    <p style="color: #64748b;">There are no students enrolled in {{ selected_classroom.standard }} - {{ selected_classroom.section }}.</p>
                 </div>
                 {% endif %}
-            </form>
-            {% else %}
-            <div class="empty-state">
-                <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">🎓</span>
-                <p>No students found in this class.</p>
             </div>
-            {% endif %}
-            
-            {% endif %}  <!-- End of elif selected_exam -->
-        {% endif %}      <!-- End of outer selected_classroom and selected_subject -->
-        </div>
+        {% endif %}  
+    {% endif %}      
+</div>
 {% endblock %}

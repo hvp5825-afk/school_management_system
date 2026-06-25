@@ -1,73 +1,171 @@
 {% extends 'authentication/teacher_base.html' %}
 
+{% block extra_css %}
+<style>
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        outline: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .card-header-styled {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0f172a;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 0.75rem;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 1.5rem;
+        align-items: flex-end;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        align-items: flex-end;
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .table th {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+
+    @media (max-width: 768px) {
+        .filter-grid, .details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-
-
-
-            <div class="card" id="manage-students">
-                <h2>Manage Students & Attendance</h2>
-                <form method="GET" action="">
-                    <label for="classroom_id" style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Select Classroom:</label>
-                    <select name="classroom_id" id="classroom_id" class="form-control" onchange="this.form.submit()" style="min-width: 200px;">
-                        <option value="">-- Choose a Class --</option>
-                        {% for cls in classrooms %}
-                            <option value="{{ cls.id }}" {% if selected_classroom and selected_classroom.id == cls.id %}selected{% endif %}>
-                                {{ cls }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </form>
-
-                {% if selected_classroom %}
-                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2rem 0;">
-                
-                <!-- Quick Action Buttons -->
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; align-items: center; flex-wrap: wrap;">
-                    <form action="{% url 'manage_attendance' classroom_id=selected_classroom.id %}" method="GET" style="display: flex; gap: 0.5rem; align-items: center; background: #f9fafb; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border); margin: 0;">
-                        <label for="att_date" style="font-weight: 500; font-size: 0.9rem;">Date:</label>
-                        <input type="date" id="att_date" name="date" class="form-control" value="{{ today_date|date:'Y-m-d' }}" required style="padding: 0.5rem;">
-                        
-                        <label for="action_type" style="font-weight: 500; font-size: 0.9rem; margin-left: 1rem;">Action:</label>
-                        <select name="action_type" id="action_type" class="form-control" style="padding: 0.5rem;">
-                            <option value="show" selected>Show Attendance</option>
-                            <option value="take">Take Attendance</option>
-                            <option value="edit">Edit Attendance</option>
-                        </select>
-                        
-                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; margin-left: 1rem;">Proceed &rarr;</button>
-                    </form>
-                </div>
-
-                <div class="card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border);">
-                    <h3 style="margin-top: 0;">Enrolled Students ({{ selected_classroom }})</h3>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Student ID</th>
-                                <th>Student Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for student in students %}
-                            <tr>
-                                <td><code>{{ student.student_id }}</code></td>
-                                <td>{{ student.user.first_name }} {{ student.user.last_name }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="2" style="text-align: center; color: #6b7280;">No students found in this classroom.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
+    {% if messages %}
+        <div style="margin-bottom: 1.5rem;">
+            {% for message in messages %}
+            <div style="padding: 1rem; border-radius: 8px; font-weight: 500; margin-bottom: 0.5rem;
+                {% if message.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #f87171;
+                {% else %}background: #d1fae5; color: #065f46; border: 1px solid #10b981;{% endif %}">
+                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i> {{ message }}
             </div>
+            {% endfor %}
         </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="margin: 0; color: #0f172a;">Student Attendance</h2>
+            <p style="color: #64748b; margin-top: 0.5rem;">Manage daily attendance records easily.</p>
+        </div>
+    </div>
+
+    <!-- Step 1: Selection Card -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 class="card-header-styled">1. Select Classroom</h3>
+        <form method="GET" action="" class="filter-grid">
+            <div>
+                <label for="classroom_id" class="form-label">Classroom</label>
+                <select name="classroom_id" id="classroom_id" class="form-control" required>
+                    <option value="">-- Choose a Class --</option>
+                    {% for cls in classrooms %}
+                        <option value="{{ cls.id }}" {% if selected_classroom and selected_classroom.id == cls.id %}selected{% endif %}>
+                            {{ cls }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; width: 100%;"><i class="fas fa-arrow-right"></i> Continue</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Step 2: Action Details -->
+    {% if selected_classroom %}
+    <div class="card" style="margin-bottom: 2rem; border-top: 4px solid var(--primary);">
+        <h3 class="card-header-styled">2. Attendance Options</h3>
+        <form action="{% url 'manage_attendance' classroom_id=selected_classroom.id %}" method="GET" class="details-grid">
+            <div>
+                <label for="att_date" class="form-label">Date</label>
+                <input type="date" id="att_date" name="date" class="form-control" value="{{ today_date|date:'Y-m-d' }}" required>
+            </div>
+            
+            <div>
+                <label for="action_type" class="form-label">Action</label>
+                <select name="action_type" id="action_type" class="form-control">
+                    <option value="show" selected>View Attendance</option>
+                    <option value="take">Take Attendance</option>
+                    <option value="edit">Edit Attendance</option>
+                </select>
+            </div>
+            
+            <div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem 1rem;"><i class="fas fa-check-square"></i> Proceed</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Step 3: Enrolled Students List -->
+    <div class="card">
+        <h3 class="card-header-styled" style="border:none; margin-bottom: 1rem;">Enrolled Students ({{ selected_classroom }})</h3>
+        <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <table class="table" style="margin: 0;">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Student ID</th>
+                        <th>Student Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td style="font-weight: 600; color: #475569;">{{ student.student_id }}</td>
+                        <td style="font-weight: 500;">{{ student.user.first_name }} {{ student.user.last_name }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" style="text-align: center; color: #94a3b8; padding: 3rem;">
+                            <span style="font-size: 3rem; display: block; margin-bottom: 1rem;"><i class="fas fa-users-slash"></i></span>
+                            No students found in this classroom.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
