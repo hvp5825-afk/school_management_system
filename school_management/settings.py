@@ -148,3 +148,6 @@ LOGIN_REDIRECT_URL = 'login'
 
 # Custom CSRF Failure View
 CSRF_FAILURE_VIEW = 'authentication.views.custom_csrf_failure'
+
+# Fix for Cross-Origin-Opener-Policy warning when using HTTP / 127.0.0.1
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
